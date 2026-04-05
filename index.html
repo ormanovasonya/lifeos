@@ -1443,9 +1443,19 @@ body::before{
   position:fixed;inset:0;z-index:9000;
   background:#111318;
   display:flex;align-items:center;justify-content:center;
-  padding:24px;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
+  padding:16px 24px;
+  overflow:hidden;
+  overscroll-behavior:none;
+  touch-action:none;
+}
+@media(max-width:768px){
+  #auth-screen,#pin-screen{
+    align-items:flex-start;
+    padding-top:max(32px,env(safe-area-inset-top,24px));
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    touch-action:pan-y;
+  }
 }
 .auth-box{
   width:100%;max-width:360px;
@@ -1456,7 +1466,7 @@ body::before{
   font-family:'Cinzel',serif;font-size:18px;font-weight:700;
   letter-spacing:8px;color:#E8E8E8;margin-bottom:8px;
 }
-.auth-sub{font-size:12px;color:#505050;letter-spacing:1px;margin-bottom:28px;text-align:center;}
+.auth-sub{font-size:12px;color:#505050;letter-spacing:1px;margin-bottom:16px;text-align:center;}
 .auth-tabs{
   display:flex;width:100%;border:1px solid rgba(255,255,255,0.08);
   border-radius:10px;overflow:hidden;margin-bottom:20px;
@@ -1484,12 +1494,12 @@ body::before{
 }
 .auth-inp:focus{border-color:rgba(255,184,0,0.4);}
 .auth-btn{
-  width:100%;height:52px;
+  width:100%;height:50px;
   background:#FFB800;color:#111;border:none;
   border-radius:10px;
   font-family:'JetBrains Mono',monospace;
   font-size:14px;font-weight:700;letter-spacing:0.5px;
-  cursor:pointer;margin-bottom:16px;
+  cursor:pointer;margin-bottom:12px;
   box-shadow:0 4px 16px rgba(255,184,0,0.25);
   transition:transform 0.15s,box-shadow 0.15s;
   -webkit-tap-highlight-color:transparent;
@@ -2420,14 +2430,20 @@ function showAuthScreen(){
   el.style.display='flex';
 }
 
-// Prevent auth screen from dismissing on iOS keyboard/scroll
+// Prevent auth screen from scrolling away on iOS keyboard open
 document.addEventListener('touchmove', function(e){
   const as=document.getElementById('auth-screen');
   const ps=document.getElementById('pin-screen');
-  if((as&&as.style.display!=='none')||(ps&&ps.style.display!=='none')){
-    // allow scroll inside auth-box only
+  const activeScreen=(as&&as.style.display!=='none'&&as)||
+                     (ps&&ps.style.display!=='none'&&ps);
+  if(activeScreen){
+    // Only allow scroll if content actually overflows
+    const box=activeScreen.querySelector('.auth-box');
+    if(!box||box.scrollHeight<=activeScreen.clientHeight){
+      e.preventDefault();
+    }
   }
-}, {passive:true});
+}, {passive:false});
 
 let _authMode='signin';
 let _pendingEmailVerification=false;
