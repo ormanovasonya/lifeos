@@ -1134,7 +1134,7 @@ body::before{
   .dash-left-head{padding:10px 12px 8px;}
 
 
-  .mobile-proj-panel{
+  .mobile-proj-panel{display:none !important;
     display:block;
     margin:16px 12px 20px;
     border-radius:12px;
@@ -1783,14 +1783,7 @@ body::before{
     <div class="dpb"><div class="dpbf" id="dpbf" style="width:0%"></div></div>
     <div class="tl-scroll" id="tl"></div>
     <!-- MOBILE PROJECTS PANEL -->
-    <div class="mobile-proj-panel" id="mobile-proj-panel">
-      <div class="mpp-head">
-        <span class="mpp-title">ПРОЕКТЫ</span>
-        <span class="mpp-pnl" id="mpp-pnl"></span>
-        <button class="mpp-add" onclick="openOv('modal-proj')">+ Добавить</button>
-      </div>
-      <div id="mpp-list"></div>
-    </div>
+
   </div>
 
   <!-- MID: STATS + FINANCE + PROJECTS -->
@@ -2055,7 +2048,7 @@ body::before{
 
 
 <!-- OFFLINE BANNER -->
-<div id="offline-banner">— Офлайн · данные сохранены</div>
+<div id="offline-banner" style="display:none">— Офлайн · данные сохранены</div>
 
 <!-- FAB (mobile) -->
 <button class="fab-mobile" id="fab-mobile" onclick="openFabSheet()" style="display:none">+</button>
@@ -2332,6 +2325,8 @@ function loadScripts(urls,cb){
 
 function startOfflineMode(){
   _fbReady=false;
+  // Don't start offline mode if user is authenticated
+  if(_currentUser){return;}
   document.getElementById('auth-screen')?.remove();
   G=load()||defaultG();
   ensureDay(new Date());
@@ -2391,6 +2386,9 @@ loadScripts([
     if(user){
       _currentUser=user;
       if(!user.emailVerified){
+        // Hide auth screen, show verify screen
+        const as=document.getElementById('auth-screen');
+        if(as)as.style.display='none';
         _showEmailVerifyScreen(user);
         return;
       }
@@ -3007,7 +3005,7 @@ function renderProjPage(){
 }
 
 // ── DASHBOARD ──
-function renderDash(){renderHeader();renderTimeline();renderWeekMini();renderMidStats();renderFinMini();renderTodayWorkout();renderProjects();renderWeekDash();renderQuote();renderMobileWorkout();if(isMobile())renderMobileProjects();}
+function renderDash(){renderHeader();renderTimeline();renderWeekMini();renderMidStats();renderFinMini();renderTodayWorkout();renderProjects();renderWeekDash();renderQuote();renderMobileWorkout();}
 
 function renderHeader(){
   document.getElementById('h-lv').textContent=G.level;
@@ -3825,6 +3823,7 @@ function openFabSheet() {
 // Offline banner
 function initOfflineBanner() {
   const banner = document.getElementById('offline-banner');
+  if(banner) banner.style.display='none'; // hide on init
   window.addEventListener('online', () => banner.classList.remove('show'));
   window.addEventListener('offline', () => banner.classList.add('show'));
   if (!navigator.onLine) banner.classList.add('show');
