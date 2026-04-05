@@ -1812,23 +1812,7 @@ body::before{
           <div class="fm-sub" id="fm-cps">0 $ накоплено</div>
         </div>
       </div>
-      <div class="sl">ПРОЕКТЫ</div>
-      <div class="proj-block">
-        <div class="proj-head">
-          <span class="proj-title">Трекер проектов</span>
-          <button class="proj-add-btn" onclick="openOv('modal-proj')">+ Добавить</button>
-        </div>
-        <table class="proj-table">
-          <thead><tr><th>ПРОЕКТ</th><th>ВЛОЖИЛ</th><th>ВЫХОД</th><th>ПОЛУЧИЛ</th><th>СТАТУС</th><th></th></tr></thead>
-          <tbody id="proj-tbody"></tbody>
-        </table>
-        <div class="proj-empty" id="proj-empty" style="display:none">Нет проектов — добавь первый</div>
-        <div class="proj-summary" id="proj-summary" style="display:none">
-          <div class="proj-sum-item"><div class="proj-sum-lbl">ВЛОЖЕНО</div><div class="proj-sum-val" id="proj-total-in" style="color:var(--t2)">0</div></div>
-          <div class="proj-sum-item"><div class="proj-sum-lbl">ПОЛУЧЕНО</div><div class="proj-sum-val" id="proj-total-out" style="color:var(--gold)">0</div></div>
-          <div class="proj-sum-item"><div class="proj-sum-lbl">P&L</div><div class="proj-sum-val" id="proj-pnl">0</div></div>
-        </div>
-      </div>
+
     </div>
   </div>
 
@@ -2217,7 +2201,6 @@ const BLOCK_SVG = {
   '__run__':    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13" cy="4" r="2"/><path d="M7 22l4-8 3 3 3-8"/><path d="M9 9l3-3 3 2 3-2"/></svg>',
   '__house__':  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg>',
   '__home__':   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg>',
-    '__home__':    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg>',
 };
 function resolveIcon(icon, size=15){
   if(!icon) return '';
@@ -2385,6 +2368,7 @@ loadScripts([
   firebase.auth().onAuthStateChanged(user=>{
     if(user){
       _currentUser=user;
+      if(_pendingEmailVerification) return;
       if(!user.emailVerified){
         // Hide auth screen, show verify screen
         const as=document.getElementById('auth-screen');
@@ -2446,6 +2430,7 @@ document.addEventListener('touchmove', function(e){
 }, {passive:true});
 
 let _authMode='signin';
+let _pendingEmailVerification=false;
 function switchAuthTab(mode){
   _authMode=mode;
   document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('on',(mode==='signin'?i===0:i===1)));
@@ -2480,24 +2465,32 @@ function _showEmailVerifyScreen(user){
   el.style.display='flex';
 }
 
-// Patch doAuth to send verification on signup
-const _origDoAuth=window.doAuth;
+// doAuth handles both signin and signup
 function doAuth(){
   if(typeof _authMode!=='undefined'&&_authMode==='signup'){
     const email=document.getElementById('auth-email')?.value.trim();
     const pass=document.getElementById('auth-pass')?.value;
     const errEl=document.getElementById('auth-err');
     if(!email||!pass){errEl.textContent='Заполни оба поля';return;}
+    if(pass.length<6){errEl.style.color='#e05a7a';errEl.textContent='Слабый пароль (мин. 6 символов)';return;}
     const btn=document.getElementById('auth-submit');
     btn.disabled=true;btn.textContent='...';
+    _pendingEmailVerification=true;
     firebase.auth().createUserWithEmailAndPassword(email,pass)
       .then(cred=>{
         cred.user.sendEmailVerification();
         btn.disabled=false;btn.textContent='Создать аккаунт';
         errEl.style.color='#A3D977';
         errEl.textContent='Письмо подтверждения отправлено на '+email;
+        setTimeout(()=>{
+          _pendingEmailVerification=false;
+          const as=document.getElementById('auth-screen');
+          if(as)as.style.display='none';
+          _showEmailVerifyScreen(cred.user);
+        },2500);
       })
       .catch(e=>{
+        _pendingEmailVerification=false;
         btn.disabled=false;btn.textContent='Создать аккаунт';
         const msgs={'auth/email-already-in-use':'Email уже занят','auth/weak-password':'Слабый пароль (мин. 6 символов)','auth/invalid-email':'Некорректный email'};
         errEl.style.color='#e05a7a';
@@ -2524,6 +2517,7 @@ function _showPinSetupForEmail(email){
   localStorage.setItem('lifeos_pin_email',email);
   _pinMode='set';
   showPinFallback();
+  // Override sub text after showPinFallback renders it (DOM is ready synchronously after appendChild)
   const sub=document.getElementById('pin-sub');
   if(sub)sub.textContent='Создай мастер-PIN для шифрования';
 }
@@ -2539,6 +2533,8 @@ function authSignOut(){
     localStorage.removeItem('lifeos_welcomed');
     G=defaultG();
     _currentUser=null;
+    renderHeader();
+    renderDash();
   }
 }
 
@@ -2546,14 +2542,15 @@ function authSignOut(){
 let _pinMode='enter';
 function showPinFallback(){
   const savedPin=localStorage.getItem('lifeos_pin');
-  _pinMode=savedPin?'enter':'set';
+  if(_pinMode!=='set') _pinMode=savedPin?'enter':'set';
+  const subText=_pinMode==='set'?'Создай 6-значный PIN':'Введи PIN';
   let el=document.getElementById('pin-screen');
   if(!el){
     el=document.createElement('div');el.id='pin-screen';
     el.innerHTML=`
     <div class="auth-box">
       <div class="auth-logo" style="font-family:'Cinzel',serif;letter-spacing:4px">PIN</div>
-      <div class="auth-sub" id="pin-sub">${savedPin?'Введи PIN':'Создай 6-значный PIN'}</div>
+      <div class="auth-sub" id="pin-sub">${subText}</div>
       <div class="pin-dots" id="pin-dots">
         <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
         <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
@@ -2566,7 +2563,7 @@ function showPinFallback(){
     </div>`;
     document.body.appendChild(el);
   } else {
-    document.getElementById('pin-sub').textContent=savedPin?'Введи PIN':'Создай 6-значный PIN';
+    document.getElementById('pin-sub').textContent=subText;
     el.style.display='flex';
   }
   _pinInput='';updatePinDots();
@@ -3285,6 +3282,7 @@ function renderProjects(){
   if(!G.projects)G.projects=[];
   const tbody=document.getElementById('proj-tbody');
   const empty=document.getElementById('proj-empty');
+  if(!tbody||!empty)return;
   if(!G.projects.length){tbody.innerHTML='';empty.style.display='block';document.getElementById('proj-summary').style.display='none';return;}
   empty.style.display='none';
   const totalIn=G.projects.reduce((a,p)=>a+p.inp,0);
