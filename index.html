@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1444,6 +1444,8 @@ body::before{
   background:#111318;
   display:flex;align-items:center;justify-content:center;
   padding:24px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .auth-box{
   width:100%;max-width:360px;
@@ -2417,7 +2419,7 @@ function showAuthScreen(){
     el=document.createElement('div');
     el.id='auth-screen';
     el.innerHTML=`
-    <div class="auth-box">
+    <div class="auth-box" ontouchstart="event.stopPropagation()">
       <div class="auth-logo">LIFE OS</div>
       <div class="auth-sub">Личный операционник жизни</div>
       <div class="auth-tabs">
@@ -2425,7 +2427,7 @@ function showAuthScreen(){
         <button class="auth-tab" onclick="switchAuthTab('signup')">Регистрация</button>
       </div>
       <div id="auth-err" class="auth-err"></div>
-      <input class="auth-inp" id="auth-email" type="email" placeholder="Email" autocomplete="email">
+      <input class="auth-inp" id="auth-email" type="email" placeholder="Email" autocomplete="email" autocorrect="off" autocapitalize="none" spellcheck="false">
       <input class="auth-inp" id="auth-pass" type="password" placeholder="Пароль" autocomplete="current-password">
       <button class="auth-btn" id="auth-submit" onclick="doAuth()">Войти</button>
       <div class="auth-pin-sep">или</div>
@@ -2435,6 +2437,15 @@ function showAuthScreen(){
   }
   el.style.display='flex';
 }
+
+// Prevent auth screen from dismissing on iOS keyboard/scroll
+document.addEventListener('touchmove', function(e){
+  const as=document.getElementById('auth-screen');
+  const ps=document.getElementById('pin-screen');
+  if((as&&as.style.display!=='none')||(ps&&ps.style.display!=='none')){
+    // allow scroll inside auth-box only
+  }
+}, {passive:true});
 
 let _authMode='signin';
 function switchAuthTab(mode){
@@ -2974,7 +2985,7 @@ function renderProjPage(){
     const profitStr=profit===0?'0':(profit>0?'+':'')+profit.toLocaleString('ru-RU');
     const pc=profit>0?'pos':profit<0?'neg':'zero';
     const sc=p.status||'wait';
-    const icoKey=Object.entries(icoMap||{}).find(([k])=>p.name.includes(k))?.[1]||'__crypto__';const ico=resolveIcon(icoKey,18);
+    const _pm={'Meteora':'__crypto__','Abstract':'__work__','Ronin':'__train__','Polymarket':'__career__','NFT':'__light__'};const icoKey=Object.entries(_pm).find(([k])=>p.name.includes(k))?.[1]||'__crypto__';const ico=resolveIcon(icoKey,18);
     return`<div class="pp-card" style="animation-delay:${idx*50}ms">
       <div class="pp-card-top" onclick="editProj(${p.id})">
         <div class="pp-card-icon">${ico}</div>
