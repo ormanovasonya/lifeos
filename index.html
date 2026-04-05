@@ -1708,6 +1708,14 @@ body::before{
   .mob-tw-dur{font-size:10px;color:#FFB800;margin-bottom:8px;}
 
 /* ── KEY DERIVATION LOADING ── */
+#app-loading{
+  position:fixed;inset:0;z-index:10000;
+  background:#111318;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;
+  transition:opacity 0.3s ease;
+}
+#app-loading.hide{opacity:0;pointer-events:none;}
 #key-loading{
   position:fixed;inset:0;z-index:9999;
   background:rgba(17,19,24,0.92);
@@ -1777,7 +1785,7 @@ body::before{
 </div>
 
 <!-- DASHBOARD PAGE -->
-<div class="page dash on" id="page-dash">
+<div class="page dash" id="page-dash">
   <!-- LEFT: TIMELINE -->
   <div class="dash-left">
     <div class="dash-left-head">
@@ -2174,6 +2182,7 @@ body::before{
   </div>
 </div>
 
+<div id="app-loading"><div class="key-loading-spinner"></div><div class="key-loading-text">Загрузка...</div></div>
 <div id="key-loading"><div class="key-loading-spinner"></div><div class="key-loading-text">Генерация ключа...</div></div>
 <div class="toast" id="toast"></div>
 
@@ -2316,11 +2325,17 @@ function loadScripts(urls,cb){
   document.head.appendChild(s);
 }
 
+function hideAppLoading(){
+  const el=document.getElementById('app-loading');
+  if(el){el.classList.add('hide');setTimeout(()=>el.remove(),350);}
+}
 function startOfflineMode(){
   _fbReady=false;
-  // Don't start offline mode if user is authenticated
+  hideAppLoading();
+  // Don't start offline mode if user is authenticated or auth-screen is visible
   if(_currentUser){return;}
-  document.getElementById('auth-screen')?.remove();
+  const as=document.getElementById('auth-screen');
+  if(as&&as.style.display!=='none'){return;}
   G=load()||defaultG();
   ensureDay(new Date());
   renderHeader();renderDash();initMobile();scrollToActiveBlock();
@@ -2376,11 +2391,11 @@ loadScripts([
 ],()=>{
   firebase.initializeApp(FB_CONFIG);
   firebase.auth().onAuthStateChanged(user=>{
+    hideAppLoading();
     if(user){
       _currentUser=user;
       if(_pendingEmailVerification) return;
       if(!user.emailVerified){
-        // Hide auth screen, show verify screen
         const as=document.getElementById('auth-screen');
         if(as)as.style.display='none';
         _showEmailVerifyScreen(user);
