@@ -2,7 +2,13 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LIFE OS">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#111318">
 <title>LIFE OS</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 20 20'%3E%3Cpath d='M10 1 L10 19 M3 6 L10 1 L17 6 M3 14 L10 19 L17 14' stroke='%23C9A66B' stroke-width='1' stroke-opacity='0.9'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%239F1239'/%3E%3C/svg%3E" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
@@ -2313,18 +2319,14 @@ const FB_CONFIG={
   appId:"1:833707496158:web:5853653c6fdd8ef722684f"
 };
 
-let _offlineModeStarted=false;
 function loadScripts(urls,cb){
   if(!urls.length){cb();return;}
   const s=document.createElement('script');
   s.src=urls[0];
-  s.crossOrigin='anonymous';
   s.onload=()=>loadScripts(urls.slice(1),cb);
-  s.onerror=()=>{if(!_offlineModeStarted){_offlineModeStarted=true;startOfflineMode();}};
+  s.onerror=()=>startOfflineMode();
   document.head.appendChild(s);
 }
-
-const icoMap={'Abstract':'__work__','Meteora':'__crypto__','Meteora LP':'__crypto__','NFT':'__light__','Ronin':'__crypto__','Polymarket':'__crypto__','Noise':'__crypto__','Oshi':'__crypto__','xStocks':'__crypto__','Variational':'__crypto__','Nado':'__crypto__'};
 
 function startOfflineMode(){
   _fbReady=false;
@@ -2948,12 +2950,12 @@ function renderStatsPage(){
 }
 
 function renderProjPage(){
-  try{
   if(!G.projects)G.projects=[];
   const list=document.getElementById('pp-list');
   if(!list)return;
-  const totalIn=G.projects.reduce((a,p)=>a+(+p.inp||0),0);
-  const totalOut=G.projects.reduce((a,p)=>a+(+p.out||0),0);
+  // Summary
+  const totalIn=G.projects.reduce((a,p)=>a+p.inp,0);
+  const totalOut=G.projects.reduce((a,p)=>a+p.out,0);
   const pnl=totalOut-totalIn;
   const pnlEl=document.getElementById('pp-pnl-val');
   const pnlHead=document.getElementById('pp-pnl');
@@ -2966,19 +2968,18 @@ function renderProjPage(){
     return;
   }
   const statusLabel={active:'активен',wait:'ожидание',done:'завершён'};
+  const icons={'Meteora':'◈','Abstract':'▣','Ronin':'◆','Polymarket':'◎','Noise':'◈','Oshi':'◆'};
   list.innerHTML=G.projects.map((p,idx)=>{
-    const profit=(+p.out||0)-(+p.inp||0);
+    const profit=p.out-p.inp;
     const profitStr=profit===0?'0':(profit>0?'+':'')+profit.toLocaleString('ru-RU');
     const pc=profit>0?'pos':profit<0?'neg':'zero';
     const sc=p.status||'wait';
-    const _localIcoMap=typeof icoMap!=='undefined'?icoMap:{};
-    const icoKey=Object.entries(_localIcoMap).find(([k])=>p.name&&p.name.includes(k))?.[1]||'__crypto__';
-    const ico=resolveIcon(icoKey,18);
+    const icoKey=Object.entries(icoMap||{}).find(([k])=>p.name.includes(k))?.[1]||'__crypto__';const ico=resolveIcon(icoKey,18);
     return`<div class="pp-card" style="animation-delay:${idx*50}ms">
       <div class="pp-card-top" onclick="editProj(${p.id})">
         <div class="pp-card-icon">${ico}</div>
         <div class="pp-card-info">
-          <div class="pp-card-name">${p.name||'—'}</div>
+          <div class="pp-card-name">${p.name}</div>
           <div class="pp-card-next">${p.next||'Нет следующего шага'}</div>
         </div>
         <div class="pp-card-right">
@@ -2992,7 +2993,6 @@ function renderProjPage(){
       </div>
     </div>`;
   }).join('');
-  }catch(e){console.error('renderProjPage error:',e);const list=document.getElementById('pp-list');if(list)list.innerHTML='<div class="pp-empty"><div class="pp-empty-text">Ошибка загрузки. Обновите страницу.</div></div>';}
 }
 
 // ── DASHBOARD ──
