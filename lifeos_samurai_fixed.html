@@ -1,0 +1,4005 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFE OS</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 20 20'%3E%3Cpath d='M10 1 L10 19 M3 6 L10 1 L17 6 M3 14 L10 19 L17 14' stroke='%23C9A66B' stroke-width='1' stroke-opacity='0.9'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%239F1239'/%3E%3C/svg%3E" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#111318;
+  --bg2:#161A1F;
+  --bg3:#161A1F;
+  --panel:#161A1F;
+  --b1:#1e1e1e;
+  --b2:#252525;
+  --b3:#2e2e2e;
+  --red:#9F1239;
+  --red2:#be1a44;
+  --red3:#e05a7a;
+  --gold:#FFB800;
+  --gold2:#d4a017;
+  --gold3:#ffd060;
+  --green:#22C55E;
+  --green2:#16a34a;
+  --t1:#E8E8E8;
+  --t2:#A0A0A0;
+  --t3:#505050;
+  --t4:#2a2a2a;
+  --rust:#8a4a2a;
+  --radius:3px;
+  --shadow:0 1px 4px rgba(0,0,0,0.45);
+}
+html,body{height:100%;overflow:hidden;}
+body{
+  background:#111318;
+  color:var(--t1);
+  font-family:'JetBrains Mono',monospace;
+  display:flex;
+  flex-direction:column;
+  font-size:13px;
+}
+
+/* Rice paper noise texture */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:9999;
+  opacity:.5;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  height:50px;
+  background:var(--bg);
+  border-bottom:1px solid var(--b1);
+  display:flex;
+  align-items:center;
+  padding:0 24px;
+  gap:24px;
+  flex-shrink:0;
+  position:relative;
+}
+.topbar::after{
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--rust) 20%,var(--gold) 50%,var(--rust) 80%,transparent);
+  opacity:.3;
+}
+.logo{
+  font-family:'Cinzel',serif;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:8px;
+  color:var(--t1);
+  margin-right:4px;
+  position:relative;
+}
+.logo-mark{
+  width:20px;height:20px;
+  margin-right:10px;
+  flex-shrink:0;
+}
+.nav{display:flex;gap:0;}
+.nav-btn{
+  padding:6px 18px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  font-weight:400;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--t3);
+  cursor:pointer;
+  border-radius:0;
+  transition:all .3s ease;
+  border:none;
+  background:none;
+  position:relative;
+}
+.nav-btn::after{
+  content:'';
+  position:absolute;
+  bottom:-1px;left:50%;right:50%;
+  height:1px;
+  background:var(--gold);
+  transition:all .3s ease;
+}
+.nav-btn:hover{color:var(--t2);}
+.nav-btn.on{color:var(--t1);}
+.nav-btn.on::after{left:0;right:0;}
+
+.topbar-right{display:flex;align-items:center;gap:20px;margin-left:auto;}
+.stat-chip{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t3);letter-spacing:1px;}
+.stat-val{font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--t2);}
+.xp-track{width:80px;height:2px;background:var(--b2);overflow:hidden;}
+.xp-track-fill{height:100%;background:var(--gold);transition:width .6s ease;}
+.stat-sep{width:1px;height:16px;background:var(--b2);}
+
+/* ── PAGES ── */
+.page{display:none;flex:1;overflow:hidden;background:var(--bg);}
+.page.on{display:flex;}
+
+/* ── DASHBOARD ── */
+.dash{flex-direction:row;overflow:hidden;background:#111318;}
+
+/* LEFT PANEL — TIMELINE */
+.dash-left{
+  width:320px;
+  flex-shrink:0;
+  border-right:1px solid var(--b1);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:#111318;
+}
+.dash-left-head{
+  padding:14px 16px 12px;
+  border-bottom:1px solid var(--b1);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.dna{
+  background:none;
+  border:1px solid var(--b2);
+  width:26px;height:26px;
+  cursor:pointer;
+  color:var(--t3);
+  font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.dna:hover{border-color:var(--gold);color:var(--gold);}
+.dlw{flex:1;text-align:center;}
+.dln{font-family:'Cinzel',serif;font-size:14px;font-weight:600;letter-spacing:4px;color:var(--t1);}
+.dld{font-size:10px;color:var(--t3);letter-spacing:1px;margin-top:2px;}
+.add-cp-btn{
+  background:none;
+  border:1px solid var(--b2);
+  padding:6px 14px;
+  font-size:11px;
+  letter-spacing:1.5px;
+  color:var(--t2);
+  cursor:pointer;
+  font-family:'JetBrains Mono',monospace;
+  transition:all .2s;
+  white-space:nowrap;
+  text-transform:uppercase;
+  border-radius:6px;
+}
+.add-cp-btn:hover{border-color:var(--gold);color:var(--gold);}
+.add-cp-btn.red-btn{border-color:rgba(190,26,68,.5);color:#e05a7a;background:rgba(159,18,57,.06);}
+.add-cp-btn.red-btn:hover{border-color:#be1a44;color:#ff8099;background:rgba(159,18,57,.12);}
+.dpb{height:2px;background:var(--b1);flex-shrink:0;}
+.dpbf{height:100%;background:var(--gold);transition:width .5s ease;}
+.tl-scroll{flex:1;overflow-y:auto;padding:10px 0;}
+.tl-scroll::-webkit-scrollbar{width:2px;}
+.tl-scroll::-webkit-scrollbar-thumb{background:var(--b2);}
+
+/* CHECKPOINT ITEMS */
+.cp-item{display:flex;padding:0 14px;cursor:default;}
+.cp-lc{width:28px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding-top:14px;}
+.cp-dot{width:10px;height:10px;border:1px solid var(--b3);background:var(--bg);flex-shrink:0;z-index:1;transition:all .3s;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);}
+.cp-item.done .cp-dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(201,166,107,.25);}
+.cp-item.active .cp-dot{background:var(--gold);border-color:var(--gold2);animation:pulse-dot 2s ease-in-out infinite;}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 4px rgba(255,184,0,.3);}50%{box-shadow:0 0 14px rgba(255,184,0,.7);}}
+.cp-vl{width:1px;flex:1;background:var(--b1);min-height:8px;}
+.cp-item.done .cp-vl{background:rgba(201,166,107,.15);}
+.cp-card{flex:1;border:1px solid rgba(255,255,255,0.07);margin:6px 0 6px 10px;padding:12px 14px;background:#161A1F;transition:all .25s ease;position:relative;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
+.cp-item.active .cp-card{border-color:rgba(255,184,0,.35);background:rgba(255,184,0,.02);box-shadow:0 2px 12px rgba(255,184,0,.06);}
+.cp-item.done .cp-card{opacity:.5;}
+.cp-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,166,107,.15),transparent);
+  opacity:0;
+  transition:opacity .3s;
+}
+.cp-item.active .cp-card::before{opacity:1;background:linear-gradient(90deg,transparent,rgba(255,184,0,.2),transparent);}
+
+/* CP header with delete */
+.cp-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.cp-ico{font-size:14px;}
+.cp-nm{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;flex:1;letter-spacing:.5px;color:var(--t1);}
+.cp-tm{font-size:10px;color:var(--t3);letter-spacing:1px;}
+.cp-dm{font-size:10px;color:var(--gold);}
+.cp-xb{font-size:9px;color:var(--t3);letter-spacing:.5px;}
+.cp-del-btn{
+  background:none;border:none;
+  color:var(--t4);
+  cursor:pointer;
+  font-size:11px;
+  padding:0 2px;
+  opacity:0;
+  transition:all .15s;
+  flex-shrink:0;
+  position:relative;
+}
+.cp-card:hover .cp-del-btn{opacity:.5;}
+.cp-del-btn:hover{opacity:1!important;color:#e05a5a;}
+.cp-del-menu{
+  position:absolute;
+  top:100%;right:0;
+  background:var(--bg2);
+  border:1px solid var(--b2);
+  z-index:200;
+  min-width:160px;
+  display:none;
+  flex-direction:column;
+}
+.cp-del-menu.open{display:flex;}
+.cp-del-menu button{
+  background:none;border:none;
+  padding:8px 12px;
+  text-align:left;
+  font-size:10px;
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:.5px;
+  color:var(--t2);
+  cursor:pointer;
+  transition:background .12s;
+  border-bottom:1px solid var(--b1);
+}
+.cp-del-menu button:last-child{border-bottom:none;}
+.cp-del-menu button:hover{background:rgba(224,90,122,.08);color:#e05a5a;}
+
+/* TASKS */
+.cp-tasks{display:flex;flex-direction:column;gap:2px;}
+.ct{display:flex;align-items:center;gap:7px;padding:3px 4px;cursor:pointer;transition:background .1s;}
+.ct:hover{background:rgba(255,255,255,.02);}
+.ct-cb{width:12px;height:12px;border:1px solid var(--b3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--gold);transition:all .2s;}
+.ct.done .ct-cb{background:rgba(201,166,107,.1);border-color:var(--gold);}
+.ct-nm{font-size:11px;flex:1;color:var(--t2);}
+.ct.done .ct-nm{text-decoration:line-through;color:var(--t3);}
+.ct-xp{font-size:9px;color:var(--t3);}
+.ct-del{font-size:10px;color:var(--t3);cursor:pointer;opacity:0;transition:opacity .12s;padding:0 2px;}
+.ct:hover .ct-del{opacity:.6;}.ct-del:hover{color:#e05a5a;}
+.ct-del-perm{margin-left:1px;opacity:0;font-size:10px;cursor:pointer;padding:0 2px;transition:opacity .12s;}
+.ct:hover .ct-del-perm{opacity:.4;}
+.ct-del-perm:hover{opacity:1!important;color:#e05a5a;}
+
+.arr-btn{
+  width:100%;
+  margin-top:10px;
+  padding:11px;
+  background:var(--gold);
+  border:none;
+  color:#111111;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
+  cursor:pointer;
+  transition:all .2s ease;
+  border-radius:var(--radius);
+  box-shadow:0 2px 10px rgba(255,184,0,.2);
+}
+.arr-btn:hover{background:var(--gold3);box-shadow:0 4px 16px rgba(255,184,0,.3);}
+.arr-btn:active{transform:scale(0.97);}
+.arr-lbl{text-align:center;font-size:9px;color:var(--green);margin-top:6px;letter-spacing:1.5px;}
+
+/* MID */
+.dash-mid{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--b1);}
+.dash-mid-s{flex:1;overflow-y:auto;padding:18px;}
+.dash-mid-s::-webkit-scrollbar{width:2px;}
+.dash-mid-s::-webkit-scrollbar-thumb{background:var(--b2);}
+.sl{
+  font-size:9px;
+  letter-spacing:4px;
+  color:var(--t3);
+  text-transform:uppercase;
+  margin-bottom:12px;
+  margin-top:20px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.sl:first-child{margin-top:0;}
+.sl::after{content:'';flex:1;height:1px;background:var(--b1);}
+
+/* Week */
+.wm{display:flex;gap:4px;margin-bottom:2px;}
+.wdb{
+  flex:1;padding:8px 2px;
+  background:var(--bg2);
+  border:1px solid var(--b1);
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.wdb:hover{border-color:var(--b2);}
+.wdb.tod{border-color:rgba(201,166,107,.3);background:rgba(201,166,107,.03);}
+.wdb.sel{border-color:var(--red);background:rgba(159,18,57,.04);}
+.wdb.hd{border-color:var(--b2);}
+.wdn{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;color:var(--t3);letter-spacing:2px;}
+.wdd{font-size:10px;color:var(--t2);margin-top:2px;}
+.wdot{width:4px;height:4px;background:var(--b2);margin:4px auto 0;}
+.wdb.tod .wdot{background:var(--gold);}
+.wdb.hd .wdot{background:var(--b3);}
+.wdb.sel .wdot{background:var(--red);}
+
+/* Stats */
+.sc-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:2px;}
+.sc{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:16px;text-align:center;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
+.sc-v{font-family:'Cinzel',serif;font-size:26px;font-weight:600;line-height:1;}
+.sc-l{font-size:9px;color:var(--t3);margin-top:6px;letter-spacing:2px;text-transform:uppercase;}
+
+/* Finance mini */
+.fm-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:2px;}
+.fm{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:14px;cursor:pointer;transition:all .2s ease;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
+.fm:hover{border-color:rgba(255,184,0,0.2);box-shadow:0 4px 16px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.04);}
+.fm-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.fm-ico{font-size:16px;}
+.fm-nm{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:1px;}
+.fm-tg{font-size:9px;color:var(--t3);letter-spacing:.5px;margin-top:1px;}
+.fm-pct{font-family:'Cinzel',serif;font-size:20px;font-weight:600;margin-bottom:6px;}
+.fm-bar{height:2px;background:var(--b2);overflow:hidden;}
+.fm-fill{height:100%;transition:width .6s ease;}
+.fm-sub{font-size:9px;color:var(--t3);margin-top:5px;letter-spacing:.5px;}
+
+/* Projects */
+.proj-block{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:14px 16px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
+.proj-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.proj-title{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;color:var(--t2);letter-spacing:2px;text-transform:uppercase;}
+.proj-add-btn{
+  background:none;border:1px solid var(--b2);
+  padding:3px 10px;font-size:9px;
+  color:var(--t3);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;
+  transition:all .2s;letter-spacing:1px;
+}
+.proj-add-btn:hover{border-color:var(--gold);color:var(--gold);}
+.proj-table{width:100%;border-collapse:collapse;font-size:10px;}
+.proj-table th{color:var(--t3);font-weight:400;text-align:left;padding:4px 6px;border-bottom:1px solid var(--b1);font-size:9px;letter-spacing:2px;}
+.proj-table td{padding:6px 6px;border-bottom:1px solid var(--b1);color:var(--t2);vertical-align:middle;}
+.proj-table tr:last-child td{border-bottom:none;}
+.proj-status{font-size:8px;padding:2px 6px;letter-spacing:1px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;}
+.proj-status.active{background:rgba(201,166,107,.08);color:var(--gold);border:1px solid rgba(201,166,107,.2);}
+.proj-status.done{background:rgba(80,80,80,.15);color:var(--t3);border:1px solid var(--b2);}
+.proj-status.wait{background:none;color:var(--t3);border:1px solid var(--b1);}
+.proj-del-btn{background:none;border:none;color:var(--t3);cursor:pointer;opacity:0;font-size:11px;padding:0 3px;}
+.proj-table tr:hover .proj-del-btn{opacity:.5;}
+.proj-del-btn:hover{opacity:1!important;color:#e05a5a;}
+.proj-profit.pos{color:var(--gold);}
+.proj-profit.neg{color:var(--red3);}
+.proj-empty{color:var(--t3);font-size:10px;text-align:center;padding:14px 0;letter-spacing:2px;}
+.proj-summary{display:flex;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--b1);}
+.proj-sum-item{flex:1;background:var(--bg3);padding:8px 10px;text-align:center;}
+.proj-sum-lbl{font-size:8px;color:var(--t3);letter-spacing:2px;margin-bottom:3px;text-transform:uppercase;}
+.proj-sum-val{font-family:'Cinzel',serif;font-size:13px;font-weight:600;}
+
+/* RIGHT PANEL */
+.dash-right{width:280px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;}
+.dash-right-s{flex:1;overflow-y:auto;padding:14px 16px;}
+.dash-right-s::-webkit-scrollbar{width:2px;}
+.dash-right-s::-webkit-scrollbar-thumb{background:var(--b2);}
+.rsl{font-size:9px;letter-spacing:4px;color:var(--t3);text-transform:uppercase;margin-bottom:10px;margin-top:18px;display:flex;align-items:center;gap:8px;}
+.rsl:first-child{margin-top:0;}
+.rsl::after{content:'';flex:1;height:1px;background:var(--b1);}
+
+/* Week progress */
+.week-stats{display:flex;gap:6px;margin-bottom:10px;}
+.ws-item{flex:1;background:var(--bg2);border:1px solid var(--b1);padding:8px;text-align:center;}
+.ws-lbl{font-size:8px;color:var(--t3);letter-spacing:2px;margin-bottom:2px;text-transform:uppercase;}
+.ws-val{font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--t1);}
+.ach-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.ach-item{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:6px 10px;font-size:10px;display:flex;align-items:center;gap:4px;border-radius:8px;}
+.ach-item.locked{opacity:.25;}
+.ach-ico{font-size:13px;}
+.ach-nm{font-size:10px;color:var(--t2);}
+.ach-desc{font-size:9px;color:var(--t3);}
+
+/* Workout block */
+.wk-block{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:16px;margin-bottom:8px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
+.wk-rest-day{font-size:11px;color:var(--t3);line-height:1.8;}
+.wk-badge{display:inline-block;font-size:8px;padding:2px 8px;margin-bottom:8px;font-family:'JetBrains Mono',monospace;letter-spacing:3px;text-transform:uppercase;}
+.wk-badge.full{background:rgba(255,184,0,.08);color:var(--gold);border:1px solid rgba(255,184,0,.2);border-radius:5px;}
+.wk-badge.light{background:rgba(255,255,255,.04);color:var(--t3);border:1px solid rgba(255,255,255,.08);border-radius:5px;}
+.wk-title{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;color:var(--t1);margin-bottom:2px;letter-spacing:.5px;}
+.wk-focus{font-size:9px;color:var(--t3);letter-spacing:.5px;margin-bottom:10px;}
+.wk-ex{display:flex;align-items:flex-start;gap:6px;padding:4px 0;border-bottom:1px solid var(--b1);overflow:hidden;}
+.wk-ex:last-child{border-bottom:none;}
+.wk-block:hover{border-color:rgba(255,184,0,0.15);}
+.wk-ei{font-size:13px;flex-shrink:0;}
+.wk-en{flex:1;font-size:10px;color:var(--t2);word-break:break-word;min-width:0;}
+.wk-es{font-size:9px;color:var(--t3);white-space:normal;flex-shrink:0;text-align:right;max-width:80px;}
+.wk-more{font-size:9px;color:var(--t3);margin-top:7px;cursor:pointer;transition:color .15s;letter-spacing:2px;text-transform:uppercase;}
+.wk-more:hover{color:var(--gold);}
+.wk-dur{font-size:9px;color:var(--t3);margin-top:6px;border-top:1px solid var(--b1);padding-top:5px;letter-spacing:1px;}
+
+/* Habits */
+.habit-grid-wrap{background:var(--bg2);border:1px solid var(--b1);padding:12px 14px;}
+.habit-rows{display:flex;flex-direction:column;}
+.habit-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.habit-row:last-child{margin-bottom:0;}
+.habit-row-top{display:flex;align-items:center;gap:7px;}
+.habit-row-ico{font-size:12px;flex-shrink:0;}
+.habit-row-lbl{font-size:11px;color:var(--t2);flex:1;}
+.habit-streak{font-size:10px;color:var(--gold);font-family:'Cinzel',serif;font-weight:600;}
+.habit-del{background:none;border:none;color:var(--t3);font-size:12px;cursor:pointer;padding:0 2px;opacity:.3;transition:opacity .15s;}
+.habit-del:hover{opacity:1;color:#e05a5a;}
+.habit-add-btn{display:flex;align-items:center;gap:6px;background:none;border:1px dashed var(--b2);padding:6px 12px;color:var(--t3);font-size:9px;font-family:'JetBrains Mono',monospace;cursor:pointer;width:100%;margin-top:4px;transition:all .2s;letter-spacing:2px;text-transform:uppercase;}
+.habit-add-btn:hover{border-color:var(--gold);color:var(--gold);}
+.habit-add-form{display:flex;gap:6px;margin-top:6px;align-items:center;}
+.habit-add-form input{flex:1;background:var(--bg3);border:1px solid var(--b2);padding:6px 10px;color:var(--t1);font-size:11px;font-family:'JetBrains Mono',monospace;outline:none;}
+.habit-add-form input:focus{border-color:var(--gold);}
+.habit-save-btn{background:rgba(201,166,107,.1);border:1px solid rgba(201,166,107,.3);padding:6px 12px;color:var(--gold);font-size:9px;font-family:'JetBrains Mono',monospace;cursor:pointer;letter-spacing:2px;}
+.habit-cells{display:flex;gap:2px;flex-wrap:nowrap;overflow:hidden;}
+.h-cell{width:10px;height:10px;background:var(--b1);flex-shrink:0;cursor:pointer;transition:all .15s;}
+.h-cell:hover{opacity:.7;}
+.h-cell.l4{background:var(--gold);opacity:.6;}
+.h-cell.today-empty{background:var(--b1);box-shadow:inset 0 0 0 1px var(--b2);}
+
+/* ── WORKOUT PAGE ── */
+.wp{flex-direction:column;overflow-y:auto;padding:24px 28px;gap:18px;}
+.wp::-webkit-scrollbar{width:2px;}
+.wp::-webkit-scrollbar-thumb{background:var(--b2);}
+.wp-ttl{font-family:'Cinzel',serif;font-size:16px;font-weight:600;letter-spacing:6px;text-transform:uppercase;}
+.wp-sub{font-size:10px;color:var(--t3);margin-top:4px;letter-spacing:1px;}
+.wp-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:4px;}
+.wp-daydot{text-align:center;padding:10px 4px;border:1px solid var(--b1);background:var(--bg2);}
+.wp-daydot.has-train{border-color:rgba(201,166,107,.25);background:rgba(201,166,107,.03);}
+.wp-daydot.has-light{border-color:var(--b2);}
+.wp-daydot.rest{opacity:.3;}
+.wp-ddn{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;color:var(--t3);letter-spacing:2px;}
+.wp-ddi{font-size:14px;margin-top:4px;}
+.wp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;}
+.wp-card{background:var(--bg2);border:1px solid var(--b1);padding:16px;}
+.wp-card.light-card{border-color:var(--b1);}
+.wp-card-head{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;}
+.wp-badge{font-size:8px;padding:2px 8px;font-family:'JetBrains Mono',monospace;letter-spacing:3px;text-transform:uppercase;white-space:nowrap;}
+.wp-badge.full{background:rgba(201,166,107,.08);color:var(--gold);border:1px solid rgba(201,166,107,.2);}
+.wp-badge.light{background:rgba(80,80,80,.1);color:var(--t3);border:1px solid var(--b2);}
+.wp-day{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:1px;}
+.wp-foc{font-size:10px;color:var(--t3);letter-spacing:.5px;}
+.wp-eq{font-size:9px;color:var(--t3);margin-bottom:10px;letter-spacing:.5px;}
+.wp-dur{font-size:9px;color:var(--t3);margin-bottom:10px;padding:3px 8px;background:var(--bg3);display:inline-block;letter-spacing:1px;}
+.wp-ex{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--b1);}
+.wp-ex:last-child{border-bottom:none;}
+.wp-en{font-size:9px;color:var(--t3);width:16px;flex-shrink:0;}
+.wp-ei{font-size:13px;}
+.wp-ename{flex:1;font-size:11px;color:var(--t2);}
+.wp-es{font-size:9px;color:var(--t3);white-space:nowrap;}
+.wp-rest{font-size:9px;color:var(--t3);margin-top:8px;padding-top:6px;border-top:1px solid var(--b1);}
+
+/* ── SHOP ── */
+.shop-p{flex-direction:column;overflow:hidden;}
+.sh-head{
+  padding:12px 24px;
+  border-bottom:1px solid var(--b1);
+  background:var(--bg);
+  display:flex;align-items:center;gap:14px;flex-shrink:0;
+}
+.sh-ttl{font-family:'Cinzel',serif;font-size:13px;font-weight:600;letter-spacing:5px;text-transform:uppercase;color:var(--t1);}
+.sh-bal{font-size:10px;color:var(--t3);letter-spacing:1px;}
+.sh-bal span{color:var(--gold);font-family:'Cinzel',serif;font-size:14px;font-weight:600;}
+.sh-add{margin-left:auto;background:none;border:1px solid var(--b2);padding:5px 14px;font-size:9px;color:var(--t3);cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .2s;letter-spacing:2px;text-transform:uppercase;}
+.sh-add:hover{border-color:var(--gold);color:var(--gold);}
+.sh-body{flex:1;overflow-y:auto;padding:16px 24px;}
+.sh-body::-webkit-scrollbar{width:2px;}
+.sh-body::-webkit-scrollbar-thumb{background:var(--b2);}
+.sh-cat{font-size:9px;letter-spacing:3px;color:var(--t3);text-transform:uppercase;margin:16px 0 8px;display:flex;align-items:center;gap:8px;}
+.sh-cat::after{content:'';flex:1;height:1px;background:var(--b1);}
+.sh-cat:first-child{margin-top:0;}
+.sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;}
+.sh-card{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:14px;cursor:pointer;transition:all .2s ease;position:relative;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
+.sh-card:hover{border-color:rgba(255,184,0,0.2);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.04);}
+.sh-card.can:hover{border-color:rgba(201,166,107,.3);}
+.sh-card.bgt{opacity:.4;}
+.si{font-size:22px;margin-bottom:8px;}
+.sn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;margin-bottom:3px;letter-spacing:.5px;}
+.sd{font-size:10px;color:var(--t3);margin-bottom:10px;line-height:1.5;}
+.sc2{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--gold);}
+.slk{font-size:9px;color:var(--t3);letter-spacing:.5px;}
+.sbg{position:absolute;top:8px;right:8px;font-size:9px;color:var(--gold);background:rgba(201,166,107,.08);border:1px solid rgba(201,166,107,.2);padding:2px 6px;letter-spacing:1px;}
+.sdl{position:absolute;top:7px;right:7px;background:none;border:none;color:var(--t3);font-size:11px;cursor:pointer;display:none;padding:2px 4px;}
+.sh-card:hover .sdl{display:block;}.sdl:hover{color:#e05a5a;}
+
+/* ── FINANCE ── */
+.fin-p{flex-direction:column;overflow-y:auto;overflow-x:hidden;padding:20px 14px;gap:14px;width:100%;box-sizing:border-box;}
+.fin-p::-webkit-scrollbar{width:2px;}
+.fin-p::-webkit-scrollbar-thumb{background:var(--b2);}
+.fin-ttl{font-family:'Cinzel',serif;font-size:16px;font-weight:600;letter-spacing:6px;text-transform:uppercase;}
+.fin-goals{display:grid;grid-template-columns:1fr;gap:12px;width:100%;}
+.fg{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:20px 22px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
+.fg-top{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.fg-ico{font-size:20px;}
+.fg-nm{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;letter-spacing:1px;}
+.fg-tg{font-size:9px;color:var(--t3);letter-spacing:.5px;}
+.fg-pct{font-family:'Cinzel',serif;font-size:30px;font-weight:600;line-height:1;margin-bottom:4px;}
+.fg-amt{font-size:10px;color:var(--t3);margin-bottom:12px;letter-spacing:.5px;}
+.fg-bar{height:2px;background:var(--b1);overflow:hidden;margin-bottom:12px;}
+.fg-fill{height:100%;transition:width .7s ease;}
+.fg-ms{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:16px;}
+.fg-m{font-size:9px;padding:2px 7px;border:1px solid var(--b2);color:var(--t3);letter-spacing:.5px;}
+.fg-m.hit{border-color:rgba(201,166,107,.3);color:var(--gold);background:rgba(201,166,107,.05);}
+.fg-op-lbl{font-size:9px;color:var(--t3);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase;}
+.fg-ir{display:flex;gap:6px;margin-bottom:10px;align-items:center;flex-wrap:wrap;}
+.fg-i{flex:1;min-width:0;max-width:100%;background:var(--bg);border:1px solid var(--b2);padding:7px 8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t1);outline:none;box-sizing:border-box;}
+.fg-i:focus{border-color:var(--gold);}
+.fg-i::placeholder{color:var(--t3);}
+.fg-add{background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.25);padding:6px 10px;color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:9px;cursor:pointer;transition:background .15s;white-space:nowrap;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;}
+.fg-add:hover{background:rgba(201,166,107,.15);}
+.fg-sub-btn{background:rgba(159,18,57,.06);border:1px solid rgba(159,18,57,.2);padding:6px 10px;color:var(--red3);font-size:9px;cursor:pointer;transition:background .15s;white-space:nowrap;font-family:'JetBrains Mono',monospace;letter-spacing:1px;flex-shrink:0;}
+.fg-sub-btn:hover{background:rgba(159,18,57,.12);}
+.fh-l{font-size:9px;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:6px;}
+.fh-r{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--b1);font-size:10px;}
+.fh-r:last-child{border-bottom:none;}
+.fh-d{color:var(--t3);}
+.fh-v{font-family:'Cinzel',serif;font-size:12px;font-weight:600;}
+.fh-v.p{color:var(--gold);}.fh-v.n{color:var(--red3);}
+
+/* ── MODALS ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:none;align-items:center;justify-content:center;}
+.ov.open{display:flex;}
+.modal{
+  background:#161A1F;
+  border:1px solid rgba(255,255,255,0.08);
+  padding:24px;
+  width:340px;
+  position:relative;
+}
+.modal::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  opacity:.2;
+}
+.m-ttl{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:3px;margin-bottom:20px;text-transform:uppercase;color:var(--t1);}
+.m-r{margin-bottom:12px;}
+.m-l{font-size:9px;color:var(--t3);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:2px;}
+.m-i{width:100%;background:var(--bg);border:1px solid var(--b2);padding:8px 10px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--t1);outline:none;}
+.m-i:focus{border-color:var(--gold);}
+.m-i::placeholder{color:var(--t3);}
+.m-i option{background:var(--bg2);}
+.m-r2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.m-act{display:flex;gap:6px;margin-top:16px;}
+.m-ok{flex:1;padding:9px;background:rgba(201,166,107,.08);border:1px solid rgba(201,166,107,.3);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:3px;text-transform:uppercase;transition:background .2s;}
+.m-ok:hover{background:rgba(201,166,107,.15);}
+.m-no{padding:9px 16px;background:none;border:1px solid var(--b2);color:var(--t3);font-size:10px;cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+
+/* Day selector in modals */
+.paf-qs{background:none;border:1px solid var(--b2);padding:2px 8px;font-size:9px;color:var(--t3);cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:1px;transition:all .15s;}
+.paf-qs:hover{border-color:var(--gold);color:var(--gold);}
+.paf-d{padding:3px 8px;border:1px solid var(--b2);font-size:9px;cursor:pointer;color:var(--t3);transition:all .12s;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
+.paf-d.on{border-color:rgba(201,166,107,.4);color:var(--gold);background:rgba(201,166,107,.06);}
+
+/* Buy confirm */
+.buy-confirm{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:400;display:none;align-items:center;justify-content:center;}
+.buy-confirm.open{display:flex;}
+.buy-box{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:28px;width:300px;text-align:center;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
+.buy-ico{font-size:32px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;}
+.buy-nm{font-family:'Cinzel',serif;font-size:16px;font-weight:600;margin-bottom:5px;letter-spacing:1px;}
+.buy-xp{font-size:11px;color:var(--gold);margin-bottom:18px;letter-spacing:2px;}
+.buy-acts{display:flex;gap:8px;justify-content:center;}
+.buy-yes{flex:1;padding:9px;background:rgba(201,166,107,.08);border:1px solid rgba(201,166,107,.3);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:3px;text-transform:uppercase;}
+.buy-no{padding:9px 16px;background:none;border:1px solid var(--b2);color:var(--t3);font-size:10px;cursor:pointer;}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:20px;left:50%;
+  transform:translateX(-50%) translateY(6px);
+  background:var(--bg2);
+  border:1px solid var(--b2);
+  color:var(--t1);
+  padding:9px 20px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  letter-spacing:1px;
+  opacity:0;
+  transition:all .25s ease;
+  pointer-events:none;
+  z-index:999;
+}
+.toast::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.3;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+.xpf{
+  position:fixed;pointer-events:none;z-index:999;
+  font-family:'Cinzel',serif;font-size:16px;font-weight:600;
+  color:var(--gold);
+  animation:fup 1.4s forwards;
+}
+@keyframes fup{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-60px);}}
+
+/* Shield btn */
+.shield-btn{background:none;border:1px solid rgba(201,166,107,.25);padding:3px 9px;font-size:9px;color:var(--gold);cursor:pointer;font-family:'JetBrains Mono',monospace;transition:all .15s;letter-spacing:1px;}
+.shield-btn:hover{background:rgba(201,166,107,.08);}
+
+/* Animations */
+@keyframes idle{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
+
+/* Quote */
+#quote-block{background:#161A1F;border:1px solid rgba(255,255,255,0.07);border-left:2px solid rgba(255,184,0,0.3);padding:14px;font-size:11px;color:var(--t2);line-height:1.7;font-style:italic;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
+
+/* Katana separator SVG decoration */
+.katana-sep{
+  display:flex;align-items:center;justify-content:center;
+  padding:6px 0;
+  color:var(--t3);
+  font-size:10px;
+  letter-spacing:4px;
+  opacity:.3;
+}
+
+/* ── WELCOME SCREEN ── */
+#welcome-screen{
+  position:fixed;inset:0;
+  background:#0A0A0A;
+  z-index:10000;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:40px 32px;
+  transition:opacity .3s ease;
+  opacity:1;
+}
+#welcome-screen.open{display:flex;}
+#ws-content{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;max-width:320px;width:100%;
+  transition:opacity .25s ease,transform .25s ease;
+}
+#ws-icon{font-size:56px;margin-bottom:32px;line-height:1;}
+#ws-title{
+  font-family:'Cinzel',serif;
+  font-size:22px;font-weight:700;
+  letter-spacing:2px;color:var(--t1);
+  margin-bottom:16px;
+}
+#ws-sub{
+  font-size:14px;line-height:1.7;
+  color:var(--t2);white-space:pre-line;
+  margin-bottom:48px;
+}
+.ws-dots{display:flex;gap:8px;margin-bottom:32px;}
+.ws-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--b3);transition:all .3s ease;
+}
+.ws-dot.on{background:var(--gold);transform:scale(1.3);}
+#ws-btn{
+  width:100%;max-width:280px;
+  height:52px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;letter-spacing:1.5px;
+  text-transform:uppercase;
+  cursor:pointer;
+  border-radius:var(--radius);
+  transition:all .2s ease;
+}
+#ws-btn:hover{opacity:.85;}
+.ws-logo{
+  position:absolute;top:24px;left:50%;
+  transform:translateX(-50%);
+  font-family:'Cinzel',serif;
+  font-size:11px;letter-spacing:6px;
+  color:var(--t3);
+}
+.ws-skip{
+  position:absolute;bottom:24px;
+  font-size:10px;color:var(--t3);
+  letter-spacing:1px;cursor:pointer;
+  background:none;border:none;
+  font-family:'JetBrains Mono',monospace;
+  transition:color .2s;
+}
+.ws-skip:hover{color:var(--t2);}
+/* ═══════════════════════════════════════
+   MOBILE-FIRST — FRIENDLINESS UPDATE
+   ═══════════════════════════════════════ */
+@media(min-width:769px){
+  .mobile-tab-bar{display:none!important;}
+}
+
+@media(min-width:769px){
+  .ct-mob-del{display:none!important;}
+}
+
+@media(max-width:768px){
+
+
+  html,body{height:auto;overflow:auto;overscroll-behavior-y:contain;}
+
+
+  body{
+    background:#111318;
+    padding-top:calc(44px + env(safe-area-inset-top,0px));
+    padding-bottom:calc(56px + env(safe-area-inset-bottom,0px) + 16px);
+  }
+
+
+  .topbar .nav{display:none;}
+  .topbar{
+    height:44px;padding:0 16px;
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    padding-top:env(safe-area-inset-top,0px);
+    background:#111318;
+  }
+  .topbar-right{gap:12px;}
+  .stat-val{font-size:18px;white-space:nowrap;flex-shrink:0;}
+
+
+  .dash{flex-direction:column;overflow:auto;}
+  .dash-left{width:100%;border-right:none;border-bottom:1px solid rgba(255,255,255,0.05);max-height:none;overflow:visible;}
+  .dash-mid{border-right:none;}
+  .dash-mid,.dash-right{display:none;}
+  .page{overflow:auto;}
+  .page.on{display:block;}
+  .dash-left-head{padding:10px 12px 8px;}
+  .dln{font-size:15px;letter-spacing:2px;}
+  .tl-scroll{max-height:none;overflow:visible;}
+
+
+  .cp-item{
+    padding:0 12px;
+    margin-bottom:14px;
+    animation:card-in 0.35s cubic-bezier(0.34,1.2,0.64,1) both;
+  }
+  .cp-item:nth-child(1){animation-delay:0ms;}
+  .cp-item:nth-child(2){animation-delay:60ms;}
+  .cp-item:nth-child(3){animation-delay:120ms;}
+  .cp-item:nth-child(4){animation-delay:180ms;}
+  .cp-item:nth-child(5){animation-delay:240ms;}
+  .cp-item:nth-child(6){animation-delay:300ms;}
+  .cp-item:nth-child(7){animation-delay:360ms;}
+
+  @keyframes card-in{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  .cp-card{
+    border-radius:12px !important;
+    background:#161A1F !important;
+    box-shadow:0 2px 10px rgba(0,0,0,0.55),
+               0 1px 3px rgba(0,0,0,0.35),
+               inset 0 1px 0 rgba(255,255,255,0.03);
+    padding:16px !important;
+    transition:box-shadow 0.3s cubic-bezier(0.34,1.2,0.64,1),
+               border-color 0.3s ease,
+               transform 0.2s cubic-bezier(0.34,1.2,0.64,1);
+  }
+
+
+  .cp-item.active .cp-card{
+    border-color:rgba(255,184,0,0.4) !important;
+    border-radius:14px !important;
+    border-left:3px solid #FFB800 !important;
+    background:linear-gradient(160deg,#1C2026 0%,#181B20 100%) !important;
+    box-shadow:0 6px 24px rgba(255,184,0,0.1),
+               0 2px 8px rgba(0,0,0,0.45),
+               inset 0 1px 0 rgba(255,184,0,0.06) !important;
+  }
+  .cp-item.active .cp-card::before{
+    opacity:1;
+    background:linear-gradient(90deg,transparent,rgba(255,184,0,0.14),transparent) !important;
+  }
+
+
+  .cp-item.done .cp-card{
+    opacity:0.6 !important;
+    filter:saturate(0.6) brightness(0.9);
+    border-left:3px solid rgba(34,197,94,0.6) !important;
+    border-radius:12px !important;
+    background:#141719 !important;
+    height:56px;overflow:hidden;cursor:pointer;
+    transition:height 0.35s cubic-bezier(0.32,0.72,0,1),
+               opacity 0.2s ease;
+  }
+  .cp-item.done .cp-card:active{opacity:0.8 !important;}
+  .cp-item.done.expanded .cp-card{height:auto;}
+  .cp-item.done .cp-tasks,.cp-item.done .arr-btn,.cp-item.done .arr-lbl{display:none;}
+  .cp-item.done.expanded .cp-tasks{display:flex;}
+
+
+  .cp-nm{
+    font-size:15px !important;
+    letter-spacing:0.3px !important;
+    color:#E8E8E8 !important;
+  }
+  .cp-tm{color:#707070 !important;font-size:12px !important;}
+
+
+  .cp-tasks{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:2px !important;
+  }
+  .ct{
+    min-height:48px !important;
+    padding:4px 8px !important;
+    border-bottom:none !important;
+    border-radius:8px !important;
+    position:relative;overflow:hidden;touch-action:pan-y;
+    -webkit-tap-highlight-color:transparent;
+    transition:background 0.2s ease, opacity 0.15s ease;
+  }
+  .ct:active{
+    background:rgba(255,184,0,0.04) !important;
+    opacity:0.9;
+  }
+
+
+  .ct-cb{
+    width:22px !important;
+    height:22px !important;
+    border-radius:6px !important;
+    border-color:#383838 !important;
+    transition:all 0.2s cubic-bezier(0.34,1.2,0.64,1);
+  }
+  .ct.done .ct-cb{
+    background:rgba(34,197,94,0.15) !important;
+    border-color:rgba(34,197,94,0.7) !important;
+    box-shadow:0 0 6px rgba(34,197,94,0.15);
+  }
+  .ct-nm{
+    font-size:15px !important;
+    color:#D8D8D8 !important;
+    letter-spacing:0.2px !important;
+  }
+  .ct.done .ct-nm{
+    text-decoration:line-through;
+    color:#4A4A4A !important;
+    opacity:0.8;
+  }
+
+
+  .ct-swipe-del{
+    position:absolute;right:0;top:0;bottom:0;width:72px;
+    background:#9F1239;border-radius:0 8px 8px 0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;transform:translateX(100%);
+    transition:transform .15s linear;pointer-events:none;
+  }
+  .ct.swipe-open .ct-swipe-del{transform:translateX(0);pointer-events:auto;}
+
+
+  .ct-add-row{
+    min-height:44px;display:flex;align-items:center;
+    padding:0 10px;gap:8px;cursor:pointer;
+    border-top:1px solid rgba(255,255,255,0.04) !important;
+    border-radius:0 0 8px 8px;
+    margin-top:6px;
+    -webkit-tap-highlight-color:transparent;
+    transition:background 0.2s ease;
+  }
+  .ct-add-row:active{background:rgba(255,255,255,0.02);}
+  .ct-add-label{
+    font-size:13px;
+    color:#525252 !important;
+    letter-spacing:0.2px;
+    transition:color 0.15s ease;
+  }
+  .ct-add-row:hover .ct-add-label,
+  .ct-add-row:active .ct-add-label{color:#787878 !important;}
+  .ct-add-label::before{content:'↳ ';color:#383838;}
+  .ct-add-input{
+    display:none;flex:1;
+    background:transparent;border:none;
+    border-bottom:1px solid rgba(255,184,0,0.3);
+    padding:4px 0;font-size:16px;
+    font-family:'JetBrains Mono',monospace;
+    color:var(--t1);outline:none;
+  }
+  .ct-add-row.editing .ct-add-label{display:none;}
+  .ct-add-row.editing .ct-add-input{display:block;}
+
+
+  .arr-btn{
+    height:52px !important;
+    font-size:14px !important;
+    letter-spacing:0.5px !important;
+    text-transform:none !important;
+    font-weight:700 !important;
+    border-radius:10px !important;
+    background:#FFB800 !important;
+    color:#111 !important;
+    box-shadow:0 4px 16px rgba(255,184,0,0.28),
+               0 1px 3px rgba(0,0,0,0.2) !important;
+    margin-top:12px !important;
+    transition:transform 0.18s cubic-bezier(0.34,1.2,0.64,1),
+               box-shadow 0.18s ease,
+               background 0.18s ease !important;
+    -webkit-tap-highlight-color:transparent !important;
+    position:relative;overflow:hidden;
+  }
+  .arr-btn::after{
+    content:'';
+    position:absolute;inset:0;
+    background:radial-gradient(circle at center,rgba(255,255,255,0.18) 0%,transparent 70%);
+    opacity:0;
+    transition:opacity 0.3s ease;
+    border-radius:10px;
+    pointer-events:none;
+  }
+  .arr-btn:active{
+    transform:scale(0.967) !important;
+    background:#E8A800 !important;
+    box-shadow:0 1px 6px rgba(255,184,0,0.2),
+               0 1px 2px rgba(0,0,0,0.25) !important;
+  }
+  .arr-btn:active::after{opacity:1;}
+  .arr-btn.completing{
+    background:linear-gradient(145deg,#8FCF7A 0%,#A3D977 55%,#B8E090 100%) !important;
+    box-shadow:0 4px 18px rgba(163,217,119,0.2) !important;
+    color:#1A3510 !important;
+    pointer-events:none !important;
+  }
+  .arr-lbl{
+    color:#22C55E !important;
+    letter-spacing:0.5px !important;
+    font-size:11px !important;
+  }
+
+
+  .next-block-hint{
+    font-size:12px !important;
+    color:#7A7A7A !important;
+    padding:8px 16px 4px !important;
+    letter-spacing:0.2px !important;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+
+
+  .add-cp-btn{padding:6px 12px;font-size:10px;border-radius:6px;}
+
+
+  .ov{align-items:flex-end;padding:0;}
+  .modal{
+    width:100%;max-width:100%;
+    border-radius:20px 20px 0 0 !important;
+    background:#161A1F !important;
+    padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
+    max-height:85vh;overflow-y:auto;
+    box-shadow:0 -8px 32px rgba(0,0,0,0.6),0 -2px 8px rgba(0,0,0,0.3) !important;
+  }
+  .modal::before{
+    content:'';display:block;
+    width:36px;height:4px;
+    background:#2A2A2A;border-radius:2px;
+    margin:0 auto 20px;
+  }
+  .m-i{font-size:16px !important;height:48px;border-radius:8px !important;}
+  .m-ok{border-radius:8px !important;}
+  .m-no{border-radius:8px !important;}
+
+
+  .fab-mobile{
+    position:fixed;right:16px;
+    bottom:calc(56px + env(safe-area-inset-bottom,0px) + 12px);
+    width:52px;height:52px;
+    background:#FFB800;color:#111;
+    border:none;border-radius:14px !important;
+    font-size:24px;font-weight:300;line-height:1;
+    cursor:pointer;
+    box-shadow:0 6px 20px rgba(255,184,0,0.35) !important;
+    display:flex;align-items:center;justify-content:center;
+    z-index:90;
+    transition:transform 0.15s cubic-bezier(0.34,1.2,0.64,1),
+               box-shadow 0.15s ease !important;
+  }
+  .fab-mobile:active{
+    transform:scale(0.88) !important;
+    box-shadow:0 3px 10px rgba(255,184,0,0.2) !important;
+  }
+
+
+  .mobile-tab-bar{
+    position:fixed;bottom:0;left:0;right:0;
+    height:calc(56px + env(safe-area-inset-bottom,0px));
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    background:rgba(13,14,18,0.97);
+    border-top:1px solid rgba(255,255,255,0.06);
+    display:flex;align-items:stretch;z-index:100;
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+  }
+  .mobile-tab-item{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;min-height:44px;
+    position:relative;
+    border:none;background:none;
+    -webkit-tap-highlight-color:transparent;
+    transition:opacity .15s ease;
+  }
+  .mobile-tab-item:active{opacity:0.6;}
+  .mobile-tab-item .tab-svg{
+    transition:opacity .2s ease, filter .2s ease;
+  }
+  .mobile-tab-item:not(.on) .tab-svg{
+    opacity:0.25;
+    filter:none;
+  }
+  .mobile-tab-item.on .tab-svg{
+    opacity:1;
+    filter:drop-shadow(0 0 8px rgba(255,184,0,0.75)) drop-shadow(0 0 20px rgba(255,184,0,0.35)) drop-shadow(0 0 2px rgba(255,184,0,0.9));
+  }
+  .mobile-tab-item.on::before{
+    content:'';position:absolute;
+    top:0;left:18%;right:18%;height:2px;
+    background:linear-gradient(90deg,transparent 0%,#FFB800 30%,#FFB800 70%,transparent 100%);
+    border-radius:0 0 3px 3px;
+    box-shadow:0 0 8px rgba(255,184,0,0.6);
+  }
+  .mobile-tab-label{display:none;}
+
+
+  .toast{
+    bottom:calc(56px + env(safe-area-inset-bottom,0px) + 8px);
+    border-radius:10px !important;
+    background:#1C2028 !important;
+    border-color:rgba(255,255,255,0.1) !important;
+  }
+  .xpf{bottom:calc(56px + env(safe-area-inset-bottom,0px) + 40px);}
+
+
+  #completion-moment{
+    position:fixed;inset:0;
+    background:#111318 !important;
+    z-index:500;display:none;
+    flex-direction:column;align-items:center;justify-content:center;
+    padding:40px 32px;text-align:center;
+    opacity:0;transition:opacity .4s ease-out;
+  }
+  #completion-moment.open{display:flex;}
+  #completion-moment.visible{opacity:1;}
+  .cm-star{font-size:40px;color:#FFB800;margin-bottom:24px;transform:scale(0);opacity:0;transition:transform .5s cubic-bezier(.34,1.56,.64,1) .3s,opacity .3s .3s;}
+  #completion-moment.visible .cm-star{transform:scale(1);opacity:1;}
+  .cm-title{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#E8E8E8;margin-bottom:8px;opacity:0;transition:opacity .4s .6s,transform .4s .6s;transform:translateY(6px);}
+  #completion-moment.visible .cm-title{opacity:1;transform:translateY(0);}
+  .cm-streak-txt{font-size:15px;color:#A0A0A0;margin-bottom:8px;opacity:0;transition:opacity .4s .8s,transform .4s .8s;transform:translateY(6px);}
+  #completion-moment.visible .cm-streak-txt{opacity:1;transform:translateY(0);}
+  .cm-warrior{font-family:'Cinzel',serif;font-size:11px;color:#FFB800;margin-bottom:24px;opacity:0;transition:opacity .6s .7s,letter-spacing .6s .7s;letter-spacing:0;}
+  #completion-moment.visible .cm-warrior{opacity:1;letter-spacing:3px;}
+  .cm-divider{width:100%;height:1px;background:rgba(255,255,255,0.06);margin-bottom:20px;opacity:0;transition:opacity .3s .9s;}
+  #completion-moment.visible .cm-divider{opacity:1;}
+  .cm-stats-block{width:100%;display:flex;flex-direction:column;gap:8px;margin-bottom:32px;opacity:0;transition:opacity .4s 1s,transform .4s 1s;transform:translateY(6px);}
+  #completion-moment.visible .cm-stats-block{opacity:1;transform:translateY(0);}
+  .cm-stat-row{display:flex;justify-content:space-between;align-items:center;}
+  .cm-stat-lbl{font-size:12px;color:#505050;letter-spacing:1px;}
+  .cm-stat-val{font-family:'Cinzel',serif;font-size:15px;font-weight:600;color:#E8E8E8;}
+  .cm-stat-val.gold{color:#FFB800;}
+  .cm-stat-val.green{color:#22C55E;}
+  .cm-close-btn{
+    width:100%;height:52px;
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:10px !important;
+    font-family:'JetBrains Mono',monospace;
+    font-size:14px;font-weight:700;
+    letter-spacing:0.5px;color:#E8E8E8;
+    cursor:pointer;opacity:0;transition:opacity .4s 1.6s;
+  }
+  #completion-moment.visible .cm-close-btn{opacity:1;}
+  .cm-close-btn:active{background:rgba(255,255,255,0.05);}
+
+
+  #offline-banner{
+    position:fixed;
+    top:calc(44px + env(safe-area-inset-top,0px));
+    left:0;right:0;z-index:99;
+    background:#1C2028 !important;
+    padding:8px 16px;
+    font-size:12px;
+    color:#7A7A7A !important;
+    letter-spacing:0.5px;text-align:center;
+    transform:translateY(-100%);transition:transform .2s ease-out;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  #offline-banner.show{transform:translateY(0);}
+
+
+  .tl-empty{display:flex;flex-direction:column;align-items:center;padding:48px 32px;text-align:center;}
+  .tl-empty-icon{font-size:28px;color:#2A2A2A;margin-bottom:16px;}
+  .tl-empty-title{font-size:17px;font-weight:600;color:var(--t1);margin-bottom:8px;letter-spacing:0.3px;}
+  .tl-empty-sub{font-size:13px;color:#606060 !important;line-height:1.6;margin-bottom:24px;}
+  .tl-empty-hint{font-size:11px;color:#3A3A3A;letter-spacing:1px;}
+
+
+  .ptr-indicator{
+    position:fixed;
+    top:calc(44px + env(safe-area-inset-top,0px));
+    left:50%;transform:translateX(-50%) translateY(-48px);
+    width:36px;height:36px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;color:#FFB800;
+    z-index:98;transition:transform .2s;pointer-events:none;
+  }
+  .ptr-indicator.visible{transform:translateX(-50%) translateY(8px);}
+  .ptr-indicator.spinning{animation:ptr-spin .8s linear infinite;}
+  @keyframes ptr-spin{to{transform:translateX(-50%) translateY(8px) rotate(360deg);}}
+
+
+  .dash-left-head{padding:10px 12px 8px;}
+
+
+  .mobile-proj-panel{
+    display:block;
+    margin:16px 12px 20px;
+    border-radius:12px;
+    background:#161A1F;
+    border:1px solid rgba(255,255,255,0.06);
+    box-shadow:0 2px 10px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.03);
+    overflow:hidden;
+  }
+  .mpp-head{
+    display:flex;align-items:center;gap:8px;
+    padding:14px 16px 12px;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .mpp-title{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;font-weight:500;
+    letter-spacing:2px;text-transform:uppercase;
+    color:#888;flex:1;
+  }
+  .mpp-pnl{font-family:'Cinzel',serif;font-size:13px;font-weight:600;}
+  .mpp-add{
+    background:none;border:1px solid rgba(255,184,0,0.25);
+    border-radius:6px;padding:4px 10px;
+    font-size:10px;letter-spacing:1px;color:#FFB800;cursor:pointer;
+    font-family:'JetBrains Mono',monospace;
+    -webkit-tap-highlight-color:transparent;
+    transition:background 0.2s ease;
+  }
+  .mpp-add:active{background:rgba(255,184,0,0.08);}
+  .mpp-item{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 16px;
+    border-bottom:1px solid rgba(255,255,255,0.04);
+    cursor:pointer;-webkit-tap-highlight-color:transparent;
+    transition:background 0.15s ease;
+  }
+  .mpp-item:last-child{border-bottom:none;}
+  .mpp-item:active{background:rgba(255,255,255,0.03);}
+  .mpp-icon{display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.75;color:var(--gold);}
+  .mpp-info{flex:1;min-width:0;}
+  .mpp-name{
+    font-size:14px;font-weight:500;color:#E8E8E8;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    letter-spacing:0.2px;margin-bottom:3px;
+  }
+  .mpp-next{
+    font-size:11px;color:#606060;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .mpp-right{text-align:right;flex-shrink:0;}
+  .mpp-profit{font-family:'Cinzel',serif;font-size:13px;font-weight:600;margin-bottom:3px;}
+  .mpp-profit.pos{color:#FFB800;}
+  .mpp-profit.neg{color:#e05a7a;}
+  .mpp-profit.zero{color:#505050;}
+  .mpp-status{
+    font-size:9px;padding:2px 7px;border-radius:4px;
+    font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;
+  }
+  .mpp-status.active{background:rgba(255,184,0,0.08);color:#FFB800;border:1px solid rgba(255,184,0,0.2);}
+  .mpp-status.wait{background:none;color:#505050;border:1px solid rgba(255,255,255,0.08);}
+  .mpp-status.done{background:rgba(34,197,94,0.08);color:#22C55E;border:1px solid rgba(34,197,94,0.2);}
+  .mpp-empty{padding:20px 16px;text-align:center;font-size:12px;color:#404040;letter-spacing:0.5px;}
+
+
+  .wp{padding:16px 12px !important;gap:12px !important;background:#111318 !important;}
+  .wp-ttl{font-size:15px !important;letter-spacing:3px !important;margin-bottom:2px;}
+  .wp-sub{font-size:11px !important;color:#606060 !important;}
+  .wp-week{gap:4px !important;margin-bottom:8px !important;}
+  .wp-daydot{
+    border-radius:8px !important;background:#161A1F !important;
+    border-color:rgba(255,255,255,0.06) !important;padding:8px 2px !important;
+    box-shadow:0 2px 6px rgba(0,0,0,0.4);
+  }
+  .wp-daydot.has-train{border-color:rgba(255,184,0,0.3) !important;background:rgba(255,184,0,0.05) !important;}
+  .wp-grid{grid-template-columns:1fr !important;gap:10px !important;}
+  .wp-card{
+    border-radius:12px !important;background:#161A1F !important;
+    border:1px solid rgba(255,255,255,0.06) !important;
+    box-shadow:0 2px 10px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.03) !important;
+    padding:16px !important;
+  }
+  .wp-badge.full{border-radius:6px !important;font-size:9px !important;}
+  .wp-badge.light{border-radius:6px !important;font-size:9px !important;}
+  .wp-day{font-size:13px !important;letter-spacing:0.5px !important;}
+  .wp-foc{font-size:12px !important;color:#808080 !important;margin-top:2px;}
+  .wp-eq{
+    font-size:12px !important;color:#606060 !important;
+    padding:6px 10px;background:rgba(255,255,255,0.03);
+    border-radius:6px;margin-bottom:12px !important;
+  }
+  .wp-dur{
+    font-size:11px !important;border-radius:6px !important;
+    background:rgba(255,184,0,0.07) !important;
+    color:#FFB800 !important;border:none !important;margin-bottom:12px !important;
+  }
+  .wp-ex{padding:8px 0 !important;border-bottom:1px solid rgba(255,255,255,0.05) !important;}
+  .wp-ename{font-size:13px !important;color:#C8C8C8 !important;}
+  .wp-es{font-size:11px !important;color:#707070 !important;}
+  .wp-rest{
+    font-size:11px !important;color:#606060 !important;
+    border-top:1px solid rgba(255,255,255,0.05) !important;
+    padding-top:8px !important;margin-top:8px !important;font-style:italic;
+  }
+  .wp-more{font-size:11px !important;margin-top:10px !important;}
+
+
+  .shop-p{background:#111318 !important;}
+  .sh-head{
+    padding:14px 16px !important;background:#111318 !important;
+    border-bottom:1px solid rgba(255,255,255,0.06) !important;
+  }
+  .sh-ttl{font-size:12px !important;letter-spacing:3px !important;}
+  .sh-body{padding:12px !important;}
+  .sh-grid{grid-template-columns:1fr 1fr !important;gap:8px !important;}
+  .sh-card{
+    border-radius:12px !important;background:#161A1F !important;
+    border:1px solid rgba(255,255,255,0.06) !important;
+    box-shadow:0 2px 8px rgba(0,0,0,0.45) !important;
+    padding:14px !important;
+    -webkit-tap-highlight-color:transparent !important;
+    transition:transform 0.2s cubic-bezier(0.34,1.2,0.64,1),box-shadow 0.2s ease !important;
+  }
+  .sh-card:active{transform:scale(0.97) !important;box-shadow:0 1px 4px rgba(0,0,0,0.4) !important;}
+  .sh-card.can{border-color:rgba(255,184,0,0.2) !important;}
+  .sh-card.bgt{opacity:0.4 !important;}
+  .si{font-size:24px !important;margin-bottom:10px !important;}
+  .sn{font-size:12px !important;letter-spacing:0.3px !important;color:#E0E0E0 !important;}
+  .sd{font-size:11px !important;color:#606060 !important;margin-bottom:10px !important;}
+  .sc2{font-size:14px !important;}
+  .slk{font-size:10px !important;color:#505050 !important;}
+  .sh-cat{font-size:10px !important;letter-spacing:2px !important;margin:16px 0 8px !important;color:#606060 !important;}
+  .sh-add{border-radius:6px !important;font-size:10px !important;padding:6px 12px !important;}
+  .sbg{border-radius:5px !important;}
+
+
+  .fin-p{padding:16px 12px !important;gap:12px !important;background:#111318 !important;}
+  .fin-ttl{font-size:14px !important;letter-spacing:3px !important;}
+  .fin-goals{grid-template-columns:1fr !important;gap:12px !important;}
+  .fg{
+    border-radius:12px !important;background:#161A1F !important;
+    border:1px solid rgba(255,255,255,0.06) !important;
+    box-shadow:0 2px 10px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.03) !important;
+    padding:18px !important;
+  }
+  .fg-ico{font-size:22px !important;}
+  .fg-nm{font-size:14px !important;letter-spacing:0.5px !important;}
+  .fg-tg{font-size:11px !important;color:#606060 !important;}
+  .fg-pct{font-size:32px !important;margin-bottom:6px !important;}
+  .fg-amt{font-size:12px !important;color:#707070 !important;margin-bottom:14px !important;}
+  .fg-bar{height:3px !important;border-radius:2px !important;margin-bottom:14px !important;}
+  .fg-fill{border-radius:2px !important;}
+  .fg-m{border-radius:5px !important;font-size:10px !important;padding:3px 8px !important;}
+  .fg-m.hit{background:rgba(255,184,0,0.1) !important;}
+  .fg-op-lbl{font-size:11px !important;color:#707070 !important;margin-bottom:8px !important;}
+  .fg-ir{display:flex;gap:6px;margin-bottom:12px !important;}
+  .fg-i{
+    font-size:16px !important;border-radius:8px !important;
+    background:#1C2028 !important;
+    border:1px solid rgba(255,255,255,0.08) !important;padding:8px 12px !important;
+  }
+  .fg-i:focus{border-color:rgba(255,184,0,0.4) !important;}
+  .fg-add{border-radius:8px !important;font-size:11px !important;padding:8px 12px !important;white-space:nowrap;}
+  .fg-sub-btn{border-radius:8px !important;font-size:11px !important;padding:8px 12px !important;white-space:nowrap;}
+  .fh-l{font-size:10px !important;letter-spacing:1.5px !important;margin-top:8px !important;}
+  .fh-r{font-size:11px !important;padding:6px 0 !important;}
+  .fh-v{font-size:13px !important;}
+
+
+  .proj-p{
+    flex-direction:column;overflow-y:auto;
+    background:#111318 !important;
+    padding:16px 12px 24px;
+  }
+  .proj-page-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:16px;padding:0 2px;
+  }
+  .proj-page-title{
+    font-family:'Cinzel',serif;font-size:14px;font-weight:600;
+    letter-spacing:3px;text-transform:uppercase;color:var(--t1);
+  }
+  .proj-page-pnl{
+    font-family:'Cinzel',serif;font-size:16px;font-weight:600;
+  }
+  .proj-page-summary{
+    display:flex;gap:8px;margin-bottom:16px;
+  }
+  .pp-sum-item{
+    flex:1;background:#161A1F;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:10px;padding:12px 10px;text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.4);
+  }
+  .pp-sum-lbl{font-size:9px;letter-spacing:1.5px;color:#505050;text-transform:uppercase;margin-bottom:5px;}
+  .pp-sum-val{font-family:'Cinzel',serif;font-size:15px;font-weight:600;color:var(--t1);}
+  .pp-sum-val.gold{color:#FFB800;}
+  .proj-page-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+  .pp-card{
+    background:#161A1F;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.45),inset 0 1px 0 rgba(255,255,255,0.03);
+    overflow:hidden;
+    animation:card-in 0.35s cubic-bezier(0.34,1.2,0.64,1) both;
+  }
+  .pp-card-top{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px 10px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .pp-card-top:active{background:rgba(255,255,255,0.02);}
+  .pp-card-icon{display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:0.75;color:var(--gold);}
+  .pp-card-info{flex:1;min-width:0;}
+  .pp-card-name{
+    font-size:15px;font-weight:500;color:#E8E8E8;
+    letter-spacing:0.2px;margin-bottom:3px;
+  }
+  .pp-card-next{
+    font-size:11px;color:#606060;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    letter-spacing:0.2px;
+  }
+  .pp-card-right{text-align:right;flex-shrink:0;}
+  .pp-card-profit{
+    font-family:'Cinzel',serif;font-size:15px;font-weight:600;margin-bottom:4px;
+  }
+  .pp-card-profit.pos{color:#FFB800;}
+  .pp-card-profit.neg{color:#e05a7a;}
+  .pp-card-profit.zero{color:#505050;}
+  .pp-card-status{
+    display:inline-block;font-size:9px;padding:2px 8px;
+    border-radius:4px;font-family:'JetBrains Mono',monospace;
+    letter-spacing:1px;text-transform:uppercase;
+  }
+  .pp-card-status.active{
+    background:rgba(255,184,0,0.08);color:#FFB800;
+    border:1px solid rgba(255,184,0,0.2);
+  }
+  .pp-card-status.wait{
+    background:none;color:#505050;
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  .pp-card-status.done{
+    background:rgba(34,197,94,0.08);color:#22C55E;
+    border:1px solid rgba(34,197,94,0.2);
+  }
+  .pp-card-actions{
+    display:flex;gap:0;
+    border-top:1px solid rgba(255,255,255,0.05);
+  }
+  .pp-card-btn{
+    flex:1;padding:10px;background:none;border:none;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:1px;text-transform:uppercase;
+    color:#505050;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:background 0.15s,color 0.15s;
+  }
+  .pp-card-btn:active{background:rgba(255,255,255,0.04);}
+  .pp-card-btn.edit{color:#888;border-right:1px solid rgba(255,255,255,0.05);}
+  .pp-card-btn.del{color:#9F1239;}
+  .pp-card-btn.del:active{background:rgba(159,18,57,0.08);}
+  .pp-empty{
+    text-align:center;padding:48px 24px;
+    display:flex;flex-direction:column;align-items:center;gap:12px;
+  }
+  .pp-empty-icon{font-size:28px;color:#2A2A2A;}
+  .pp-empty-text{font-size:14px;color:#404040;letter-spacing:0.3px;}
+  .proj-page-add{
+    width:100%;height:52px;
+    background:rgba(255,184,0,0.07);
+    border:1px solid rgba(255,184,0,0.2);
+    border-radius:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;font-weight:500;
+    letter-spacing:0.5px;color:#FFB800;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:background 0.2s ease,transform 0.15s cubic-bezier(0.34,1.2,0.64,1);
+  }
+  .proj-page-add:active{
+    background:rgba(255,184,0,0.12);
+    transform:scale(0.98);
+  }
+
+
+
+  .fin-p{padding:16px 12px !important;overflow-x:hidden !important;max-width:100vw !important;}
+  .fin-goals{grid-template-columns:1fr !important;gap:12px !important;}
+  .fg{max-width:100% !important;box-sizing:border-box !important;}
+  .fg-ir{flex-wrap:wrap !important;}
+  .fg-i{min-width:0 !important;font-size:16px !important;}
+  .fg-ms{flex-wrap:wrap !important;}
+
+
+  .dpb{background:rgba(255,255,255,0.04);}
+  .dpbf{
+    background:linear-gradient(90deg,#E8A800,#FFB800,#FFD060) !important;
+    box-shadow:0 0 8px rgba(255,184,0,0.25);
+    transition:width 0.6s cubic-bezier(0.34,1.2,0.64,1) !important;
+  }
+}
+
+/* ── AUTH SCREEN ── */
+#auth-screen,#pin-screen{
+  position:fixed;inset:0;z-index:9000;
+  background:#111318;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+.auth-box{
+  width:100%;max-width:360px;
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;
+}
+.auth-logo{
+  font-family:'Cinzel',serif;font-size:18px;font-weight:700;
+  letter-spacing:8px;color:#E8E8E8;margin-bottom:8px;
+}
+.auth-sub{font-size:12px;color:#505050;letter-spacing:1px;margin-bottom:28px;text-align:center;}
+.auth-tabs{
+  display:flex;width:100%;border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;overflow:hidden;margin-bottom:20px;
+}
+.auth-tab{
+  flex:1;padding:10px;background:none;border:none;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  letter-spacing:1px;color:#505050;cursor:pointer;
+  transition:all 0.2s ease;-webkit-tap-highlight-color:transparent;
+}
+.auth-tab.on{background:#161A1F;color:#E8E8E8;}
+.auth-err{
+  font-size:11px;color:#e05a7a;letter-spacing:0.5px;
+  min-height:16px;margin-bottom:8px;text-align:center;
+}
+.auth-inp{
+  width:100%;height:50px;
+  background:#161A1F;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;
+  padding:0 16px;margin-bottom:12px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:15px;color:#E8E8E8;outline:none;
+  transition:border-color 0.2s;
+}
+.auth-inp:focus{border-color:rgba(255,184,0,0.4);}
+.auth-btn{
+  width:100%;height:52px;
+  background:#FFB800;color:#111;border:none;
+  border-radius:10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px;font-weight:700;letter-spacing:0.5px;
+  cursor:pointer;margin-bottom:16px;
+  box-shadow:0 4px 16px rgba(255,184,0,0.25);
+  transition:transform 0.15s,box-shadow 0.15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.auth-btn:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(255,184,0,0.15);}
+.auth-btn:disabled{opacity:0.6;}
+.auth-pin-sep{font-size:11px;color:#333;letter-spacing:2px;margin-bottom:12px;}
+.auth-pin-btn{
+  background:none;border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;padding:10px 20px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;letter-spacing:1px;color:#707070;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:all 0.2s;
+}
+.auth-pin-btn:active{background:rgba(255,255,255,0.04);}
+/* PIN */
+.pin-dots{display:flex;gap:16px;margin:20px 0 28px;}
+.pin-dot{
+  width:16px;height:16px;border-radius:50%;
+  border:2px solid rgba(255,255,255,0.15);
+  background:transparent;
+  transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.pin-dot.filled{background:#FFB800;border-color:#FFB800;transform:scale(1.1);}
+.pin-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:10px;width:100%;max-width:280px;
+}
+.pin-key{
+  height:60px;background:#161A1F;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:12px;
+  font-family:'Cinzel',serif;font-size:20px;font-weight:600;
+  color:#E8E8E8;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform 0.12s cubic-bezier(0.34,1.56,0.64,1),background 0.1s;
+}
+.pin-key:active{transform:scale(0.9);background:#1C2028;}
+.pin-key-empty{background:transparent;border-color:transparent;pointer-events:none;}
+
+/* ── STATISTICS PAGE ── */
+.stats-p{
+  flex-direction:column;overflow-y:auto;
+  background:#111318;
+  padding:16px 12px 24px;
+}
+.stats-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;padding:0 2px;
+}
+.stats-title{
+  font-family:'Cinzel',serif;font-size:14px;font-weight:600;
+  letter-spacing:3px;text-transform:uppercase;color:#E8E8E8;
+}
+.stats-period{
+  display:flex;gap:6px;
+}
+.stats-period-btn{
+  padding:5px 12px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:1px;text-transform:uppercase;
+  background:none;border:1px solid rgba(255,255,255,0.1);
+  color:#505050;cursor:pointer;transition:all 0.2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.stats-period-btn.on{
+  background:rgba(255,184,0,0.1);border-color:rgba(255,184,0,0.3);color:#FFB800;
+}
+.stats-section{margin-bottom:20px;}
+.stats-section-title{
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:#505050;margin-bottom:12px;padding:0 2px;
+}
+.stats-kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.stats-kpi{
+  background:#161A1F;border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;padding:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.03);
+}
+.stats-kpi-val{
+  font-family:'Cinzel',serif;font-size:26px;font-weight:700;
+  color:#E8E8E8;margin-bottom:4px;line-height:1;
+}
+.stats-kpi-val.gold{color:#FFB800;}
+.stats-kpi-val.green{color:#22C55E;}
+.stats-kpi-lbl{font-size:10px;color:#505050;letter-spacing:0.5px;}
+.stats-kpi-sub{font-size:11px;color:#707070;margin-top:3px;}
+.stats-chart-card{
+  background:#161A1F;border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.03);
+  margin-bottom:10px;
+}
+.stats-chart-title{
+  font-size:11px;color:#707070;letter-spacing:0.5px;margin-bottom:12px;
+}
+.stats-bar-chart{
+  display:flex;align-items:flex-end;gap:4px;
+  height:60px;
+}
+.stats-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.stats-bar{
+  width:100%;border-radius:3px 3px 0 0;
+  background:rgba(255,184,0,0.25);
+  transition:height 0.6s cubic-bezier(0.34,1.2,0.64,1);
+  min-height:2px;
+}
+.stats-bar.today{background:#FFB800;}
+.stats-bar-lbl{font-size:8px;color:#505050;letter-spacing:0.5px;}
+.stats-streak-row{
+  display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;
+}
+.stats-streak-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(255,184,0,0.2);
+  transition:background 0.2s;
+}
+.stats-streak-dot.done{background:#FFB800;}
+.stats-streak-dot.today{background:#22C55E;}
+.stats-goal-row{
+  display:flex;align-items:center;gap:10px;padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+.stats-goal-row:last-child{border-bottom:none;}
+.stats-goal-ico{font-size:18px;flex-shrink:0;}
+.stats-goal-info{flex:1;}
+.stats-goal-name{font-size:13px;color:#C8C8C8;margin-bottom:4px;}
+.stats-goal-bar-wrap{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;}
+.stats-goal-bar-fill{height:100%;border-radius:2px;background:#FFB800;transition:width 0.6s;}
+.stats-goal-pct{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:#FFB800;flex-shrink:0;}
+.stats-sign-out{
+  width:100%;padding:12px;background:none;
+  border:1px solid rgba(255,255,255,0.08);border-radius:10px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  letter-spacing:1px;color:#505050;cursor:pointer;
+  transition:all 0.2s;margin-top:8px;
+  -webkit-tap-highlight-color:transparent;
+}
+.stats-sign-out:active{background:rgba(255,255,255,0.04);}
+
+/* ── SVG ICON SYSTEM ── */
+.ico{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--t2);}
+.ico svg{display:block;}
+.ico-sm{width:14px;height:14px;}
+.ico-md{width:18px;height:18px;}
+.ico-lg{width:22px;height:22px;}
+.ico-xl{width:32px;height:32px;}
+.ico-block{color:var(--gold);opacity:0.85;}
+.ico-done{color:var(--green);opacity:0.7;}
+.cp-item.active .ico-block{opacity:1;}
+.ico-reward{color:var(--gold);opacity:0.8;}
+.ico-muted{color:var(--t3);opacity:0.6;}
+
+  /* ── MOBILE WORKOUT INLINE ── */
+  .mob-tw{margin:0 12px 16px;display:none;}
+  @media(max-width:768px){.mob-tw{display:block;}}
+  .mob-tw-tabs{
+    display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:10px;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  }
+  .mob-tw-tabs::-webkit-scrollbar{display:none;}
+  .mob-tw-tab{
+    flex-shrink:0;padding:5px 12px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:6px;font-family:'JetBrains Mono',monospace;
+    font-size:9px;letter-spacing:1px;text-transform:uppercase;
+    color:#505050;cursor:pointer;white-space:nowrap;
+    -webkit-tap-highlight-color:transparent;
+    transition:all .15s ease;
+  }
+  .mob-tw-tab.on{
+    background:rgba(255,184,0,0.1);
+    border-color:rgba(255,184,0,0.3);
+    color:#FFB800;
+  }
+  .mob-tw-cards{
+    display:flex;gap:10px;overflow-x:auto;
+    scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+  }
+  .mob-tw-cards::-webkit-scrollbar{display:none;}
+  .mob-tw-card{
+    flex-shrink:0;width:calc(100vw - 48px);
+    scroll-snap-align:start;
+    background:#161A1F;border:1px solid rgba(255,255,255,0.06);
+    border-radius:12px;padding:14px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.4);
+  }
+  .mob-tw-badge{
+    display:inline-block;font-size:8px;padding:2px 8px;border-radius:4px;
+    font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;
+    margin-bottom:8px;
+  }
+  .mob-tw-badge.full{background:rgba(255,184,0,0.08);color:#FFB800;border:1px solid rgba(255,184,0,0.2);}
+  .mob-tw-badge.light{background:rgba(80,80,80,.1);color:#505050;border:1px solid rgba(255,255,255,0.08);}
+  .mob-tw-title{font-size:12px;color:#C0C0C0;margin-bottom:4px;font-weight:500;}
+  .mob-tw-focus{font-size:10px;color:#505050;margin-bottom:10px;}
+  .mob-tw-ex{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+  .mob-tw-ex:last-child{border-bottom:none;}
+  .mob-tw-ei{flex-shrink:0;opacity:0.7;color:#FFB800;display:flex;}
+  .mob-tw-en{flex:1;font-size:12px;color:#B0B0B0;}
+  .mob-tw-es{font-size:10px;color:#505050;white-space:nowrap;}
+  .mob-tw-rest{font-size:10px;color:#505050;margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.05);font-style:italic;}
+  .mob-tw-dur{font-size:10px;color:#FFB800;margin-bottom:8px;}
+
+/* ── KEY DERIVATION LOADING ── */
+#key-loading{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(17,19,24,0.92);
+  display:none;align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;
+}
+#key-loading.show{display:flex;}
+.key-loading-spinner{
+  width:36px;height:36px;
+  border:2px solid rgba(255,184,0,0.15);
+  border-top-color:#FFB800;
+  border-radius:50%;
+  animation:spin-key 0.8s linear infinite;
+}
+@keyframes spin-key{to{transform:rotate(360deg);}}
+.key-loading-text{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;letter-spacing:1.5px;
+  color:#505050;text-transform:uppercase;
+}
+
+  /* ── MOBILE TASK DELETE BUTTON ── */
+  .ct-mob-del{
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    width:32px;height:32px;
+    background:none;border:none;
+    color:#505050;
+    font-size:14px;
+    cursor:pointer;
+    border-radius:6px;
+    -webkit-tap-highlight-color:transparent;
+    transition:color .15s,background .15s;
+    margin-left:auto;
+  }
+  .ct-mob-del:active{color:#e05a7a;background:rgba(159,18,57,0.1);}
+
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <svg class="logo-mark" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 1 L10 19 M3 6 L10 1 L17 6 M3 14 L10 19 L17 14" stroke="#C9A66B" stroke-width="1" stroke-opacity="0.6"/>
+    <circle cx="10" cy="10" r="2" fill="#9F1239" fill-opacity="0.8"/>
+  </svg>
+  <div class="logo">LIFE OS</div>
+  <div class="nav">
+    <button class="nav-btn on"  onclick="pg('dash')">СЕГОДНЯ</button>
+    <button class="nav-btn"     onclick="pg('work')">ТРЕНИРОВКИ</button>
+    <button class="nav-btn"     onclick="pg('shop')">МАГАЗИН</button>
+    <button class="nav-btn"     onclick="pg('fin')">ФИНАНСЫ</button>
+    <button class="nav-btn"     onclick="pg('proj')">ПРОЕКТЫ</button>
+  </div>
+  <div class="topbar-right">
+    <div class="stat-chip">LV <span class="stat-val" id="h-lv" style="color:var(--t1)">1</span></div>
+    <div class="stat-chip">
+      <div class="xp-track"><div class="xp-track-fill" id="h-xpf"></div></div>
+      <span id="h-xpt" style="color:var(--t3)">0/100</span>
+    </div>
+    <div class="stat-sep"></div>
+    <div class="stat-chip" id="h-str-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 2c0 4-4 6-4 10a4 4 0 008 0c0-4-4-6-4-10z"/></svg> <span class="stat-val" id="h-str" style="color:#FFB800;font-size:18px;font-weight:700">0</span></div>
+    <div class="stat-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> <span class="stat-val" id="h-tot" style="color:var(--gold)">0</span> <span style="color:var(--t3)">xp</span></div>
+    <div id="sync-dot" title="синхронизация" style="width:6px;height:6px;border-radius:50%;background:var(--t3);transition:background .3s;margin-left:4px;"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div class="page dash on" id="page-dash">
+  <!-- LEFT: TIMELINE -->
+  <div class="dash-left">
+    <div class="dash-left-head">
+      <button class="dna" onclick="shiftDay(-1)">◂</button>
+      <div class="dlw">
+        <div class="dln" id="dl-name">ПН</div>
+        <div class="dld" id="dl-date"></div>
+      </div>
+      <button class="dna" onclick="shiftDay(1)">▸</button>
+      <button class="add-cp-btn" onclick="openOv('modal-cp')">+ Блок</button>
+      <button class="add-cp-btn red-btn" onclick="openAddPermTask()">+ Задача</button>
+    </div>
+    <div class="dpb"><div class="dpbf" id="dpbf" style="width:0%"></div></div>
+    <div class="tl-scroll" id="tl"></div>
+    <!-- MOBILE PROJECTS PANEL -->
+    <div class="mobile-proj-panel" id="mobile-proj-panel">
+      <div class="mpp-head">
+        <span class="mpp-title">ПРОЕКТЫ</span>
+        <span class="mpp-pnl" id="mpp-pnl"></span>
+        <button class="mpp-add" onclick="openOv('modal-proj')">+ Добавить</button>
+      </div>
+      <div id="mpp-list"></div>
+    </div>
+  </div>
+
+  <!-- MID: STATS + FINANCE + PROJECTS -->
+  <div class="dash-mid">
+    <div class="dash-mid-s">
+      <div class="sl">НЕДЕЛЯ</div>
+      <div class="wm" id="wm"></div>
+      <div class="sl">ПРОГРЕСС ДНЯ</div>
+      <div class="sc-row">
+        <div class="sc"><div class="sc-v" id="sc-done" style="color:var(--t1)">0</div><div class="sc-l">Выполнено</div></div>
+        <div class="sc"><div class="sc-v" id="sc-xpd" style="color:var(--gold)">0</div><div class="sc-l">XP сегодня</div></div>
+        <div class="sc"><div class="sc-v" id="sc-str" style="color:var(--red3)">0</div><div class="sc-l">Серия</div></div>
+      </div>
+      <div class="sl">ЦЕЛИ</div>
+      <div class="fm-row">
+        <div class="fm" onclick="pg('fin')">
+          <div class="fm-top"><div class="fm-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg></div><div><div class="fm-nm">Квартира</div><div class="fm-tg">15 000 000 ₽</div></div></div>
+          <div class="fm-pct" id="fm-ap" style="color:var(--gold)">0.00%</div>
+          <div class="fm-bar"><div class="fm-fill" id="fm-apb" style="background:var(--gold);width:0%"></div></div>
+          <div class="fm-sub" id="fm-aps">0 ₽ накоплено</div>
+        </div>
+        <div class="fm" onclick="pg('fin')">
+          <div class="fm-top"><div class="fm-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="fm-nm">Крипта</div><div class="fm-tg">1 000 000 $</div></div></div>
+          <div class="fm-pct" id="fm-cp" style="color:var(--red3)">0.00%</div>
+          <div class="fm-bar"><div class="fm-fill" id="fm-cpb" style="background:var(--red);width:0%"></div></div>
+          <div class="fm-sub" id="fm-cps">0 $ накоплено</div>
+        </div>
+      </div>
+      <div class="sl">ПРОЕКТЫ</div>
+      <div class="proj-block">
+        <div class="proj-head">
+          <span class="proj-title">Трекер проектов</span>
+          <button class="proj-add-btn" onclick="openOv('modal-proj')">+ Добавить</button>
+        </div>
+        <table class="proj-table">
+          <thead><tr><th>ПРОЕКТ</th><th>ВЛОЖИЛ</th><th>ВЫХОД</th><th>ПОЛУЧИЛ</th><th>СТАТУС</th><th></th></tr></thead>
+          <tbody id="proj-tbody"></tbody>
+        </table>
+        <div class="proj-empty" id="proj-empty" style="display:none">Нет проектов — добавь первый</div>
+        <div class="proj-summary" id="proj-summary" style="display:none">
+          <div class="proj-sum-item"><div class="proj-sum-lbl">ВЛОЖЕНО</div><div class="proj-sum-val" id="proj-total-in" style="color:var(--t2)">0</div></div>
+          <div class="proj-sum-item"><div class="proj-sum-lbl">ПОЛУЧЕНО</div><div class="proj-sum-val" id="proj-total-out" style="color:var(--gold)">0</div></div>
+          <div class="proj-sum-item"><div class="proj-sum-lbl">P&L</div><div class="proj-sum-val" id="proj-pnl">0</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: WORKOUT + WEEK -->
+  <div class="dash-right">
+    <div class="dash-right-s">
+      <div class="rsl" style="margin-bottom:10px">ЦИТАТА ДНЯ</div>
+      <div id="quote-block"></div>
+      <div class="rsl" style="margin-top:16px">ТРЕНИРОВКА СЕГОДНЯ</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div id="tw-tab-title" style="font-size:9px;color:var(--t3)"></div>
+        <div style="display:flex;gap:4px">
+          <button onclick="twTab(0)" id="tw-btn-0" style="background:none;border:1px solid var(--b2);padding:2px 8px;font-size:8px;color:var(--t3);cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;">ТРЕНИРОВКА</button>
+          <button onclick="twTab(1)" id="tw-btn-1" style="background:none;border:1px solid var(--b2);padding:2px 8px;font-size:8px;color:var(--t3);cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;">ЗАРЯДКА</button>
+        </div>
+      </div>
+      <div id="tw"></div>
+      <div id="week-dash" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WORKOUT PAGE -->
+<div class="page wp" id="page-work">
+  <div>
+    <div class="wp-ttl">ТРЕНИРОВКИ</div>
+    <div class="wp-sub">Гиря 16 кг · Резинка 16–32 кг · Коврик для йоги</div>
+  </div>
+  <div class="wp-week" id="wp-week"></div>
+  <div class="wp-grid" id="wp-grid"></div>
+</div>
+
+<!-- SHOP PAGE -->
+<div class="page shop-p" id="page-shop">
+  <div class="sh-head">
+    <div class="sh-ttl">МАГАЗИН</div>
+    <div class="sh-bal">Баланс: <span id="sh-bal">0</span> XP</div>
+    <button class="sh-add" onclick="openOv('modal-rw')">+ Своя награда</button>
+  </div>
+  <div class="sh-body" id="sh-body"></div>
+</div>
+
+<!-- FINANCE PAGE -->
+<div class="page fin-p" id="page-fin">
+  <div><div class="fin-ttl">ФИНАНСЫ</div></div>
+  <div class="fin-goals">
+    <div class="fg">
+      <div class="fg-top"><div class="fg-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg></div><div><div class="fg-nm">Квартира</div><div class="fg-tg">Цель: 15 000 000 ₽</div></div></div>
+      <div class="fg-pct" id="fa-pct" style="color:var(--gold)">0.00%</div>
+      <div class="fg-amt"><span id="fa-cur">0</span> / 15 000 000 ₽</div>
+      <div class="fg-bar"><div class="fg-fill" id="fa-bar" style="background:var(--gold);width:0%"></div></div>
+      <div class="fg-ms" id="fa-ms"></div>
+      <div class="fg-op-lbl">Пополнить / Снять</div>
+      <div class="fg-ir"><input class="fg-i" id="fa-i" type="number" placeholder="Сумма в ₽"><button class="fg-add" onclick="finOp('apt',1)">+ Добавить</button><button class="fg-sub-btn" onclick="finOp('apt',-1)">− Снять</button></div>
+      <div id="fa-hist"></div>
+    </div>
+    <div class="fg">
+      <div class="fg-top"><div class="fg-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div><div class="fg-nm">Крипта</div><div class="fg-tg">Цель: 1 000 000 $</div></div></div>
+      <div class="fg-pct" id="fc-pct" style="color:var(--red3)">0.00%</div>
+      <div class="fg-amt"><span id="fc-cur">0</span> / 1 000 000 $</div>
+      <div class="fg-bar"><div class="fg-fill" id="fc-bar" style="background:var(--red);width:0%"></div></div>
+      <div class="fg-ms" id="fc-ms"></div>
+      <div class="fg-op-lbl">Пополнить / Снять</div>
+      <div class="fg-ir"><input class="fg-i" id="fc-i" type="number" placeholder="Сумма в $"><button class="fg-add" onclick="finOp('cry',1)">+ Добавить</button><button class="fg-sub-btn" onclick="finOp('cry',-1)">− Снять</button></div>
+      <div id="fc-hist"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECTS PAGE -->
+<div class="page proj-p" id="page-proj">
+  <div class="proj-page-head">
+    <div class="proj-page-title">ПРОЕКТЫ</div>
+    <div class="proj-page-pnl" id="pp-pnl"></div>
+  </div>
+  <div class="proj-page-summary" id="pp-summary">
+    <div class="pp-sum-item">
+      <div class="pp-sum-lbl">ВЛОЖЕНО</div>
+      <div class="pp-sum-val" id="pp-total-in">0</div>
+    </div>
+    <div class="pp-sum-item">
+      <div class="pp-sum-lbl">ПОЛУЧЕНО</div>
+      <div class="pp-sum-val gold" id="pp-total-out">0</div>
+    </div>
+    <div class="pp-sum-item">
+      <div class="pp-sum-lbl">P&L</div>
+      <div class="pp-sum-val" id="pp-pnl-val">0</div>
+    </div>
+  </div>
+  <div class="proj-page-list" id="pp-list"></div>
+  <button class="proj-page-add" onclick="openOv('modal-proj')">+ Добавить проект</button>
+</div>
+
+<!-- MODAL: ADD CHECKPOINT (with day selector) -->
+<div class="ov" id="modal-cp">
+  <div class="modal">
+    <div class="m-ttl">Добавить блок дня</div>
+    <div class="m-r">
+      <label class="m-l">Иконка и название</label>
+      <div style="display:flex;gap:6px">
+        <input class="m-i" id="cp-ic" value="◈" maxlength="2" style="width:46px;text-align:center;font-size:16px">
+        <input class="m-i" id="cp-nm" placeholder="Название..." style="flex:1">
+      </div>
+    </div>
+    <div class="m-r2">
+      <div><label class="m-l">Время</label><input class="m-i" id="cp-tm" type="time" value="09:00"></div>
+      <div><label class="m-l">XP</label><input class="m-i" id="cp-xp" type="number" value="20"></div>
+    </div>
+    <div class="m-r">
+      <label class="m-l">Добавить в дни</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
+        <button class="paf-qs" onclick="setCpDays([0,1,2,3,4,5,6])">Все</button>
+        <button class="paf-qs" onclick="setCpDays([1,2,3,4,5])">Будни</button>
+        <button class="paf-qs" onclick="setCpDays([6,0])">Выходные</button>
+        <button class="paf-qs" onclick="setCpDays([])">Только сегодня</button>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px" id="cp-days"></div>
+      <div style="font-size:9px;color:var(--t3);margin-top:5px;letter-spacing:.5px">Если ничего не выбрано — добавится только в текущий день</div>
+    </div>
+    <div class="m-act">
+      <button class="m-ok" onclick="saveCp()">Добавить</button>
+      <button class="m-no" onclick="closeOv('modal-cp')">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD REWARD -->
+<div class="ov" id="modal-rw">
+  <div class="modal">
+    <div class="m-ttl">Новая награда</div>
+    <div class="m-r"><label class="m-l">Иконка</label><input class="m-i" id="rw-ic" value="★" maxlength="2" style="width:50px;text-align:center;font-size:16px"></div>
+    <div class="m-r"><label class="m-l">Название</label><input class="m-i" id="rw-nm" placeholder="Название..."></div>
+    <div class="m-r"><label class="m-l">Описание</label><input class="m-i" id="rw-ds" placeholder="Кратко..."></div>
+    <div class="m-r2">
+      <div><label class="m-l">Стоимость XP</label><input class="m-i" id="rw-xp" type="number" value="100"></div>
+      <div><label class="m-l">Категория</label>
+        <select class="m-i" id="rw-cat" style="background:var(--bg2);color:var(--t1);border:1px solid var(--b2);padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;outline:none;">
+          <option>Еда</option><option>Игры</option><option>Отдых</option><option>Развлечения</option><option>Другое</option>
+        </select>
+      </div>
+    </div>
+    <div class="m-act"><button class="m-ok" onclick="saveReward()">Создать</button><button class="m-no" onclick="closeOv('modal-rw')">Отмена</button></div>
+  </div>
+</div>
+
+<!-- MODAL: ADD PROJECT -->
+<div class="ov" id="modal-proj">
+  <div class="modal">
+    <div class="m-ttl">Новый проект</div>
+    <div class="m-r"><label class="m-l">Название проекта</label><input class="m-i" id="proj-nm" placeholder="Meteora LP, NFT коллекция..."></div>
+    <div class="m-r2">
+      <div><label class="m-l">Вложил</label><input class="m-i" id="proj-in" type="number" placeholder="0"></div>
+      <div><label class="m-l">Получил</label><input class="m-i" id="proj-out" type="number" placeholder="0"></div>
+    </div>
+    <div class="m-r"><label class="m-l">Когда выйдет</label><input class="m-i" id="proj-date" type="text" placeholder="Март 2025, Q2..."></div>
+    <div class="m-r"><label class="m-l">Следующий шаг</label><input class="m-i" id="proj-next" placeholder="Что сделать дальше..."></div>
+    <div class="m-r"><label class="m-l">Статус</label>
+      <select class="m-i" id="proj-status" style="background:var(--bg2);color:var(--t1);border:1px solid var(--b2);padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;outline:none;">
+        <option value="active">Активный</option>
+        <option value="wait">Ожидание</option>
+        <option value="done">Завершён</option>
+      </select>
+    </div>
+    <div class="m-act">
+      <button class="m-ok" onclick="saveProj()">Сохранить</button>
+      <button class="m-no" onclick="closeOv('modal-proj')">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD PERM TASK -->
+<div class="ov" id="modal-perm-task">
+  <div class="modal" style="max-width:420px;width:90%">
+    <div class="m-ttl">Задача на каждый день</div>
+    <div class="m-r"><label class="m-l">Название задачи</label><input class="m-i" id="pt-nm" placeholder="Название..."></div>
+    <div class="m-r"><label class="m-l">В какой блок дня</label>
+      <select class="m-i" id="pt-block" style="background:var(--bg2);color:var(--t1);border:1px solid var(--b2);padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;outline:none;">
+        <option value="Подъём / утро">↑ Подъём / утро</option>
+        <option value="Крипта">◈ Крипта</option>
+        <option value="Работа">⊡ Работа</option>
+        <option value="Карьера">◎ Карьера</option>
+        <option value="Вечер дома">⌂ Вечер дома</option>
+      </select>
+    </div>
+    <div class="m-r"><label class="m-l">По дням</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
+        <button class="paf-qs" onclick="setPermDays([0,1,2,3,4,5,6])">Все</button>
+        <button class="paf-qs" onclick="setPermDays([1,2,3,4,5])">Будни</button>
+        <button class="paf-qs" onclick="setPermDays([6,0])">Выходные</button>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px" id="pt-days"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="m-ok" onclick="savePermTask()">Добавить</button>
+      <button class="m-no" onclick="closeOv('modal-perm-task')">Отмена</button>
+    </div>
+    <!-- список существующих permTasks -->
+    <div id="pt-list-wrap" style="margin-top:16px;border-top:1px solid var(--b1);padding-top:12px;display:none">
+      <div style="font-size:9px;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:8px">Активные постоянные задачи</div>
+      <div id="pt-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BUY CONFIRM -->
+<div class="buy-confirm" id="buy-confirm">
+  <div class="buy-box">
+    <div class="buy-ico" id="bc-ico"></div>
+    <div class="buy-nm" id="bc-nm"></div>
+    <div class="buy-xp" id="bc-xp"></div>
+    <div class="buy-acts">
+      <button class="buy-yes" onclick="confirmBuy()">Купить</button>
+      <button class="buy-no" onclick="closeBuyConfirm()">Отмена</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- OFFLINE BANNER -->
+<div id="offline-banner">— Офлайн · данные сохранены</div>
+
+<!-- FAB (mobile) -->
+<button class="fab-mobile" id="fab-mobile" onclick="openFabSheet()" style="display:none">+</button>
+
+<!-- BOTTOM TAB BAR (mobile) -->
+<div class="mobile-tab-bar" id="mobile-tab-bar" style="display:none">
+  <button class="mobile-tab-item on" data-page="dash" onclick="handleMobileTabClick(this)">
+    <svg class="tab-svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg>
+  </button>
+  <button class="mobile-tab-item" data-page="work" onclick="handleMobileTabClick(this)">
+    <svg class="tab-svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="1.7" stroke-linecap="round"><path d="M6.5 6.5h1l1 9h7l1-9h1"/><path d="M3 12h3M18 12h3"/><circle cx="5.5" cy="12" r="1.5"/><circle cx="18.5" cy="12" r="1.5"/></svg>
+  </button>
+  <button class="mobile-tab-item" data-page="shop" onclick="handleMobileTabClick(this)">
+    <svg class="tab-svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+  </button>
+  <button class="mobile-tab-item" data-page="fin" onclick="handleMobileTabClick(this)">
+    <svg class="tab-svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="1.7" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+  </button>
+  <button class="mobile-tab-item" data-page="proj" onclick="handleMobileTabClick(this)">
+    <svg class="tab-svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  </button>
+  <button class="mobile-tab-item" data-page="stats" onclick="handleMobileTabClick(this)">
+    <svg class="tab-svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="1.7" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-7"/></svg>
+  </button>
+</div>
+
+<!-- STATISTICS PAGE -->
+<div class="page stats-p" id="page-stats">
+  <div class="stats-header">
+    <div class="stats-title">СТАТИСТИКА</div>
+    <div class="stats-period">
+      <button class="stats-period-btn on" id="spb-7" onclick="setStatsPeriod(7)">7 дн</button>
+      <button class="stats-period-btn" id="spb-30" onclick="setStatsPeriod(30)">30 дн</button>
+    </div>
+  </div>
+
+  <!-- XP & Streak KPIs -->
+  <div class="stats-section">
+    <div class="stats-section-title">Прогресс</div>
+    <div class="stats-kpi-row">
+      <div class="stats-kpi">
+        <div class="stats-kpi-val gold" id="st-xp-total">0</div>
+        <div class="stats-kpi-lbl">XP за период</div>
+      </div>
+      <div class="stats-kpi">
+        <div class="stats-kpi-val" id="st-streak">0</div>
+        <div class="stats-kpi-lbl">Текущая серия ◆</div>
+        <div class="stats-kpi-sub" id="st-streak-best"></div>
+      </div>
+    </div>
+    <div class="stats-kpi-row">
+      <div class="stats-kpi">
+        <div class="stats-kpi-val green" id="st-blocks-pct">0%</div>
+        <div class="stats-kpi-lbl">Блоков закрыто</div>
+      </div>
+      <div class="stats-kpi">
+        <div class="stats-kpi-val" id="st-level">1</div>
+        <div class="stats-kpi-lbl">Уровень</div>
+        <div class="stats-kpi-sub" id="st-xp-next"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- XP Chart -->
+  <div class="stats-section">
+    <div class="stats-section-title">XP по дням</div>
+    <div class="stats-chart-card">
+      <div class="stats-bar-chart" id="st-xp-chart"></div>
+    </div>
+  </div>
+
+  <!-- Streak history -->
+  <div class="stats-section">
+    <div class="stats-section-title">История серии (30 дней)</div>
+    <div class="stats-chart-card">
+      <div class="stats-streak-row" id="st-streak-hist"></div>
+    </div>
+  </div>
+
+  <!-- Finance section -->
+  <div class="stats-section">
+    <div class="stats-section-title">Финансовые цели</div>
+    <div class="stats-chart-card" id="st-fin-goals"></div>
+  </div>
+
+  <!-- Finance history chart -->
+  <div class="stats-section">
+    <div class="stats-section-title">Движение средств</div>
+    <div class="stats-chart-card" id="st-fin-chart">
+      <div class="stats-chart-title">История пополнений и снятий</div>
+      <div id="st-fin-hist-list"></div>
+    </div>
+  </div>
+
+  <!-- Sign out -->
+  <button class="stats-sign-out" onclick="authSignOut()">← Выйти из аккаунта</button>
+</div>
+
+<!-- COMPLETION MOMENT -->
+<div id="completion-moment">
+  <div class="cm-star">✦</div>
+  <div class="cm-title">День закрыт.</div>
+  <div class="cm-streak-txt" id="cm-streak-txt"></div>
+  <div class="cm-warrior" id="cm-warrior"></div>
+  <div class="cm-divider"></div>
+  <div class="cm-stats-block">
+    <div class="cm-stat-row">
+      <span class="cm-stat-lbl">БЛОКОВ ЗАКРЫТО</span>
+      <span class="cm-stat-val green" id="cm-blocks">—</span>
+    </div>
+    <div class="cm-stat-row">
+      <span class="cm-stat-lbl">XP ЗА ДЕНЬ</span>
+      <span class="cm-stat-val gold" id="cm-xp-day">—</span>
+    </div>
+    <div class="cm-stat-row">
+      <span class="cm-stat-lbl">СЕРИЯ</span>
+      <span class="cm-stat-val" id="cm-streak-val">—</span>
+    </div>
+  </div>
+  <button class="cm-close-btn" onclick="closeCompletionMoment()">Хорошо ✓</button>
+</div>
+
+<!-- FAB SHEET -->
+<div class="ov" id="fab-sheet">
+  <div class="modal" style="padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))">
+    <button class="m-ok" style="width:100%;margin-bottom:8px;height:52px;font-size:14px" onclick="closeOv('fab-sheet');openOv('modal-cp')">▣ Добавить блок дня</button>
+    <button class="m-ok" style="width:100%;margin-bottom:8px;height:52px;font-size:14px;background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.3);color:#FFB800" onclick="closeOv('fab-sheet');openAddPermTask()">✓ Постоянная задача</button>
+    <button class="m-no" style="width:100%;height:52px;font-size:14px" onclick="closeOv('fab-sheet')">Отмена</button>
+  </div>
+</div>
+
+<div id="key-loading"><div class="key-loading-spinner"></div><div class="key-loading-text">Генерация ключа...</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+
+// ── ICON SYSTEM ──
+const BLOCK_SVG = {
+  '__morning__': '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 100 10A5 5 0 0012 2z"/><path d="M4 22v-2a4 4 0 014-4h8a4 4 0 014 4v2"/></svg>',
+  '__crypto__':  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 8 11 13 14 21 6"/><polyline points="15 6 21 6 21 12"/></svg>',
+  '__work__':    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="1.5"/><path d="M8 21h8M12 17v4"/></svg>',
+  '__food__':    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 2v7c0 1.7 1.3 3 3 3s3-1.3 3-3V2"/><line x1="6" y1="12" x2="6" y2="22"/><line x1="21" y1="2" x2="21" y2="22"/><path d="M21 2a5 5 0 00-5 5v4h5"/></svg>',
+  '__career__':  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>',
+  '__train__':   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 4v16M18 4v16"/><path d="M6 8H2M6 16H2M18 8h4M18 16h4"/><line x1="6" y1="12" x2="18" y2="12"/></svg>',
+  '__light__':   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A3D977" stroke-width="2" stroke-linecap="round"><path d="M12 3v3M12 18v3M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M3 12h3M18 12h3M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/><circle cx="12" cy="12" r="3.5"/></svg>',
+  '__walk__':    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><path d="M9 20l-2-5 3-3 2 5M15 20l2-5-3-3-2 5M8 9l1.5-3L12 7l2.5-1 1.5 3"/></svg>',
+  '__yoga__':    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><path d="M12 6v4M6 14l6-4 6 4M4 20c2-2 5-3 8-3s6 1 8 3"/></svg>',
+  '__reward_food__':    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2L3 7v4a9 9 0 0018 0V7L12 2z"/><path d="M9 12h6"/><path d="M12 9v6"/></svg>',
+  '__reward_drink__':   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 3h14l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 3z"/><path d="M8 8h8"/></svg>',
+  '__reward_game__':    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="11" r="1" fill="currentColor"/><circle cx="18" cy="13" r="1" fill="currentColor"/></svg>',
+  '__reward_movie__':   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16M2 8h5M17 8h5M2 16h5M17 16h5"/></svg>',
+  '__reward_sleep__':   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21a9 9 0 01-9-15.3A7 7 0 1017 21z"/></svg>',
+  '__reward_burger__':  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h16"/><path d="M4 16h16"/><path d="M6 8V6a6 6 0 0112 0v2"/><path d="M6 16v2a6 6 0 0012 0v-2"/><path d="M4 12h16"/></svg>',
+  '__reward_car__':     '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2V9a2 2 0 012-2h1l2-3h12l2 3h1a2 2 0 012 2v6a2 2 0 01-2 2h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>',
+  '__reward_shop__':    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="21" r="1" fill="currentColor"/><circle cx="20" cy="21" r="1" fill="currentColor"/><path d="M1 1h4l2.68 13.4a2 2 0 002 1.6h9.72a2 2 0 002-1.6L23 6H6"/></svg>',
+  '__reward_friends__': '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>',
+  '__reward_music__':   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 14a9 9 0 0118 0"/><path d="M3 14v3a2 2 0 002 2h1a2 2 0 002-2v-3M16 14v3a2 2 0 002 2h1a2 2 0 002-2v-3"/></svg>',
+  '__reward_gift__':    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="8" width="18" height="13" rx="1"/><path d="M12 8v13M3 13h18"/><path d="M8 8c0-2.2 1.8-4 4-4s4 1.8 4 4"/></svg>',
+  '__push__':   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.5 2c-1 0-1.8.4-2.4 1L4 12l2 2 7-7v14h3V7l3 3 2-2-5.1-4.6A3.5 3.5 0 0014.5 2z"/></svg>',
+  '__lift__':   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 4v16M18 4v16"/><path d="M6 8H2M6 16H2M18 8h4M18 16h4"/><line x1="6" y1="12" x2="18" y2="12"/></svg>',
+  '__leg__':    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 2v10l3 4-2 6H8l2-6-3-4V2"/><line x1="7" y1="10" x2="13" y2="10"/></svg>',
+  '__stretch__':'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="4" r="2"/><path d="M12 6v4M6 14l6-4 6 4M4 20c2-2 5-3 8-3s6 1 8 3"/></svg>',
+  '__rotate__': '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>',
+  '__default__':'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v4M12 16h.01"/></svg>',
+  '__rest__':  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6H6"/><path d="M6 12h12"/><path d="M8 18h8"/></svg>',
+  '__run__':    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13" cy="4" r="2"/><path d="M7 22l4-8 3 3 3-8"/><path d="M9 9l3-3 3 2 3-2"/></svg>',
+  '__house__':  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg>',
+  '__home__':   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg>',
+    '__home__':    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg>',
+};
+function resolveIcon(icon, size=15){
+  if(!icon) return '';
+  if(BLOCK_SVG[icon]){
+    return BLOCK_SVG[icon]
+      .replace(/width="15" height="15"/g,`width="${size}" height="${size}"`)
+      .replace(/width="22" height="22"/g,`width="${size}" height="${size}"`);
+  }
+  // If it contains SVG markup, return as-is (already SVG)
+  if(icon.includes('<svg')) return icon;
+  // Unicode symbols and text — wrap in a styled span, not raw text
+  if(icon.startsWith('__')) return `<span style="opacity:0.4;font-size:${size}px">◈</span>`;
+  return `<span style="line-height:1">${icon}</span>`;
+}
+
+// ── UTILS ──
+const WD=['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'];
+const MN=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+function dkey(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function startOfWeek(d){const r=new Date(d);const day=r.getDay();r.setDate(r.getDate()+(day===0?-6:1-day));r.setHours(0,0,0,0);return r;}
+/*
+ * FIREBASE SECURITY RULES (rules.json) — deploy via Firebase Console → Realtime Database → Rules
+ * {
+ *   "rules": {
+ *     "users": {
+ *       "$uid": {
+ *         ".read":  "$uid === auth.uid",
+ *         ".write": "$uid === auth.uid"
+ *       }
+ *     }
+ *   }
+ * }
+ */
+
+const SK='lifeos6';
+// ── CRYPTO ──
+let _cryptoKey=null; // CryptoKey, set after PIN entry
+
+async function deriveCryptoKey(email,pin){
+  const enc=new TextEncoder();
+  const keyMaterial=await crypto.subtle.importKey(
+    'raw',enc.encode(email+':'+pin),{name:'PBKDF2'},false,['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt:enc.encode('lifeos-salt-v1'),iterations:100000,hash:'SHA-256'},
+    keyMaterial,{name:'AES-GCM',length:256},false,['encrypt','decrypt']
+  );
+}
+
+async function encryptData(obj,key){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const enc=new TextEncoder();
+  const buf=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,enc.encode(JSON.stringify(obj)));
+  const ivHex=Array.from(iv).map(b=>b.toString(16).padStart(2,'0')).join('');
+  const dataHex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  return {enc:true,iv:ivHex,d:dataHex};
+}
+
+async function decryptData(payload,key){
+  const iv=new Uint8Array(payload.iv.match(/.{2}/g).map(b=>parseInt(b,16)));
+  const d=new Uint8Array(payload.d.match(/.{2}/g).map(b=>parseInt(b,16)));
+  const buf=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,d);
+  return JSON.parse(new TextDecoder().decode(buf));
+}
+
+const ENCRYPTED_FIELDS=['days','fin','projects','achievements','rewards','streak','xp','totalXP','level','xpNext','lastDate','streakShield','notes','permTasks','permCps','deletedTasks','deletedCps'];
+
+async function encryptG(key){
+  const payload={encrypted:true,lastSaved:G.lastSaved};
+  const sensitive={};
+  ENCRYPTED_FIELDS.forEach(f=>{if(G[f]!==undefined)sensitive[f]=G[f];});
+  const enc=await encryptData(sensitive,key);
+  payload.data=enc;
+  return payload;
+}
+
+async function decryptG(payload,key){
+  if(!payload?.encrypted||!payload?.data)return payload;
+  const sensitive=await decryptData(payload.data,key);
+  return Object.assign({encrypted:true,lastSaved:payload.lastSaved},sensitive);
+}
+
+// ── FIREBASE + AUTH ──
+let _fbReady=false,_fbRef=null,_fbSaveTimer=null,_currentUser=null;
+
+const FB_CONFIG={
+  apiKey:"AIzaSyCqH3k4aSjxxo5kTQsxYFhbateYWv6qgZk",
+  authDomain:"lifeos-60aca.firebaseapp.com",
+  databaseURL:"https://lifeos-60aca-default-rtdb.firebaseio.com",
+  projectId:"lifeos-60aca",
+  storageBucket:"lifeos-60aca.firebasestorage.app",
+  messagingSenderId:"833707496158",
+  appId:"1:833707496158:web:5853653c6fdd8ef722684f"
+};
+
+let _offlineModeStarted=false;
+function loadScripts(urls,cb){
+  if(!urls.length){cb();return;}
+  const s=document.createElement('script');
+  s.src=urls[0];
+  s.crossOrigin='anonymous';
+  s.onload=()=>loadScripts(urls.slice(1),cb);
+  s.onerror=()=>{if(!_offlineModeStarted){_offlineModeStarted=true;startOfflineMode();}};
+  document.head.appendChild(s);
+}
+
+const icoMap={'Abstract':'__work__','Meteora':'__crypto__','Meteora LP':'__crypto__','NFT':'__light__','Ronin':'__crypto__','Polymarket':'__crypto__','Noise':'__crypto__','Oshi':'__crypto__','xStocks':'__crypto__','Variational':'__crypto__','Nado':'__crypto__'};
+
+function startOfflineMode(){
+  _fbReady=false;
+  document.getElementById('auth-screen')?.remove();
+  G=load()||defaultG();
+  ensureDay(new Date());
+  renderHeader();renderDash();initMobile();scrollToActiveBlock();
+  checkWelcome();
+}
+
+function checkWelcome(){
+  if(!localStorage.getItem('lifeos_welcomed')){
+    renderWelcomeSlide();
+    setTimeout(()=>document.getElementById('welcome-screen')?.classList.add('open'),200);
+  }
+}
+
+async function initDataForUser(uid){
+  _fbRef=firebase.database().ref('users/'+uid+'/data');
+  _fbRef.once('value').then(async snap=>{
+    const remote=snap.val();
+    const local=load();
+    let rawData=null;
+    if(remote&&(remote.lastSaved||0)>=(local?.lastSaved||0)){rawData=remote;}
+    else if(local){rawData=local;if(_fbRef)_fbRef.set(local);}
+    else{rawData=null;}
+
+    if(rawData?.encrypted&&_cryptoKey){
+      try{G=await decryptG(rawData,_cryptoKey);}
+      catch(e){G=defaultG();}
+    } else if(rawData&&!rawData.encrypted){
+      G=rawData;
+    } else {
+      G=defaultG();
+    }
+
+    _fbReady=true;
+    _fbRef.on('value',async snap=>{
+      const r=snap.val();
+      if(!r||!_fbReady)return;
+      if((r.lastSaved||0)>(G.lastSaved||0)){
+        if(r.encrypted&&_cryptoKey){try{G=await decryptG(r,_cryptoKey);}catch(e){return;}}
+        else if(!r.encrypted){G=r;}
+        renderHeader();renderDash();renderFinMini();
+      }
+    });
+    ensureDay(new Date());
+    renderHeader();renderDash();initMobile();scrollToActiveBlock();
+    checkWelcome();
+  }).catch(()=>startOfflineMode());
+}
+
+loadScripts([
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js'
+],()=>{
+  firebase.initializeApp(FB_CONFIG);
+  firebase.auth().onAuthStateChanged(user=>{
+    if(user){
+      _currentUser=user;
+      if(!user.emailVerified){
+        _showEmailVerifyScreen(user);
+        return;
+      }
+      document.getElementById('auth-screen')?.remove();
+      document.getElementById('email-verify-screen')?.remove();
+      document.getElementById('auth-user-email')&&(document.getElementById('auth-user-email').textContent=user.email||'');
+      const _savedPin=localStorage.getItem('lifeos_pin');
+      if(_savedPin){
+        const _kl3=document.getElementById('key-loading');if(_kl3)_kl3.classList.add('show');
+        deriveCryptoKey(user.email||user.uid,_savedPin).then(key=>{if(_kl3)_kl3.classList.remove('show');_cryptoKey=key;initDataForUser(user.uid);});
+      } else {
+        _showPinSetupForEmail(user.email||user.uid);
+      }
+    } else {
+      _currentUser=null;
+      _fbReady=false;
+      showAuthScreen();
+    }
+  });
+});
+
+// ── AUTH FUNCTIONS ──
+function showAuthScreen(){
+  let el=document.getElementById('auth-screen');
+  if(!el){
+    el=document.createElement('div');
+    el.id='auth-screen';
+    el.innerHTML=`
+    <div class="auth-box">
+      <div class="auth-logo">LIFE OS</div>
+      <div class="auth-sub">Личный операционник жизни</div>
+      <div class="auth-tabs">
+        <button class="auth-tab on" onclick="switchAuthTab('signin')">Войти</button>
+        <button class="auth-tab" onclick="switchAuthTab('signup')">Регистрация</button>
+      </div>
+      <div id="auth-err" class="auth-err"></div>
+      <input class="auth-inp" id="auth-email" type="email" placeholder="Email" autocomplete="email">
+      <input class="auth-inp" id="auth-pass" type="password" placeholder="Пароль" autocomplete="current-password">
+      <button class="auth-btn" id="auth-submit" onclick="doAuth()">Войти</button>
+      <div class="auth-pin-sep">или</div>
+      <button class="auth-pin-btn" onclick="showPinFallback()">## Войти по PIN</button>
+    </div>`;
+    document.body.appendChild(el);
+  }
+  el.style.display='flex';
+}
+
+let _authMode='signin';
+function switchAuthTab(mode){
+  _authMode=mode;
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('on',(mode==='signin'?i===0:i===1)));
+  document.getElementById('auth-submit').textContent=mode==='signin'?'Войти':'Создать аккаунт';
+  document.getElementById('auth-err').textContent='';
+  const passEl=document.getElementById('auth-pass');
+  if(passEl)passEl.autocomplete=mode==='signin'?'current-password':'new-password';
+}
+
+/* doAuth replaced above */
+
+function _showEmailVerifyScreen(user){
+  let el=document.getElementById('email-verify-screen');
+  if(!el){
+    el=document.createElement('div');
+    el.id='email-verify-screen';
+    el.style.cssText='position:fixed;inset:0;z-index:9000;background:#111318;display:flex;align-items:center;justify-content:center;padding:24px;';
+    document.body.appendChild(el);
+  }
+  el.innerHTML=`<div class="auth-box">
+    <div class="auth-logo">LIFE OS</div>
+    <div class="auth-sub" style="text-align:center;margin-bottom:20px">Подтверди email</div>
+    <div style="font-size:12px;color:#707070;text-align:center;line-height:1.7;margin-bottom:24px">
+      Письмо отправлено на<br><span style="color:#E8E8E8">${user.email}</span><br><br>
+      Открой письмо и нажми ссылку подтверждения, затем вернись сюда.
+    </div>
+    <button class="auth-btn" style="margin-bottom:10px" onclick="firebase.auth().currentUser?.reload().then(()=>{if(firebase.auth().currentUser?.emailVerified){document.getElementById('email-verify-screen').remove();firebase.auth().onAuthStateChanged&&location.reload();}else{document.getElementById('evr-msg').textContent='Email ещё не подтверждён';}})">Я подтвердил</button>
+    <div id="evr-msg" style="font-size:11px;color:#e05a7a;text-align:center;min-height:16px;margin-bottom:12px"></div>
+    <button class="auth-pin-btn" onclick="firebase.auth().currentUser?.sendEmailVerification().then(()=>{document.getElementById('evr-msg').textContent='Письмо отправлено повторно';document.getElementById('evr-msg').style.color='#A3D977';}).catch(e=>{document.getElementById('evr-msg').textContent=e.message;})">Отправить письмо повторно</button>
+    <button class="auth-pin-btn" style="margin-top:8px" onclick="authSignOut()">← Выйти</button>
+  </div>`;
+  el.style.display='flex';
+}
+
+// Patch doAuth to send verification on signup
+const _origDoAuth=window.doAuth;
+function doAuth(){
+  if(typeof _authMode!=='undefined'&&_authMode==='signup'){
+    const email=document.getElementById('auth-email')?.value.trim();
+    const pass=document.getElementById('auth-pass')?.value;
+    const errEl=document.getElementById('auth-err');
+    if(!email||!pass){errEl.textContent='Заполни оба поля';return;}
+    const btn=document.getElementById('auth-submit');
+    btn.disabled=true;btn.textContent='...';
+    firebase.auth().createUserWithEmailAndPassword(email,pass)
+      .then(cred=>{
+        cred.user.sendEmailVerification();
+        btn.disabled=false;btn.textContent='Создать аккаунт';
+        errEl.style.color='#A3D977';
+        errEl.textContent='Письмо подтверждения отправлено на '+email;
+      })
+      .catch(e=>{
+        btn.disabled=false;btn.textContent='Создать аккаунт';
+        const msgs={'auth/email-already-in-use':'Email уже занят','auth/weak-password':'Слабый пароль (мин. 6 символов)','auth/invalid-email':'Некорректный email'};
+        errEl.style.color='#e05a7a';
+        errEl.textContent=msgs[e.code]||e.message;
+      });
+  } else {
+    const email=document.getElementById('auth-email')?.value.trim();
+    const pass=document.getElementById('auth-pass')?.value;
+    const errEl=document.getElementById('auth-err');
+    if(!email||!pass){errEl.textContent='Заполни оба поля';return;}
+    const btn=document.getElementById('auth-submit');
+    btn.disabled=true;btn.textContent='...';
+    firebase.auth().signInWithEmailAndPassword(email,pass)
+      .catch(e=>{
+        btn.disabled=false;btn.textContent='Войти';
+        const msgs={'auth/user-not-found':'Пользователь не найден','auth/wrong-password':'Неверный пароль','auth/invalid-credential':'Неверный email или пароль','auth/invalid-email':'Некорректный email'};
+        errEl.style.color='#e05a7a';
+        errEl.textContent=msgs[e.code]||e.message;
+      });
+  }
+}
+
+function _showPinSetupForEmail(email){
+  localStorage.setItem('lifeos_pin_email',email);
+  _pinMode='set';
+  showPinFallback();
+  const sub=document.getElementById('pin-sub');
+  if(sub)sub.textContent='Создай мастер-PIN для шифрования';
+}
+
+function authSignOut(){
+  if(confirm('Выйти из аккаунта?')){
+    _cryptoKey=null;
+    _fbReady=false;
+    if(_fbRef){_fbRef.off();_fbRef=null;}
+    firebase.auth().signOut();
+    localStorage.removeItem(SK);
+    localStorage.removeItem('lifeos_pin');
+    localStorage.removeItem('lifeos_welcomed');
+    G=defaultG();
+    _currentUser=null;
+  }
+}
+
+// ── PIN FALLBACK ──
+let _pinMode='enter';
+function showPinFallback(){
+  const savedPin=localStorage.getItem('lifeos_pin');
+  _pinMode=savedPin?'enter':'set';
+  let el=document.getElementById('pin-screen');
+  if(!el){
+    el=document.createElement('div');el.id='pin-screen';
+    el.innerHTML=`
+    <div class="auth-box">
+      <div class="auth-logo" style="font-family:'Cinzel',serif;letter-spacing:4px">PIN</div>
+      <div class="auth-sub" id="pin-sub">${savedPin?'Введи PIN':'Создай 6-значный PIN'}</div>
+      <div class="pin-dots" id="pin-dots">
+        <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+        <div class="pin-dot" id="pd4"></div><div class="pin-dot" id="pd5"></div>
+      </div>
+      <div class="pin-grid">
+        ${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k=>`<button class="pin-key ${k===''?'pin-key-empty':''}" ${k===''?'disabled':''} onclick="pinKey('${k}')">${k}</button>`).join('')}
+      </div>
+      <button class="auth-pin-btn" style="margin-top:12px" onclick="document.getElementById('pin-screen').style.display='none'">← Назад</button>
+    </div>`;
+    document.body.appendChild(el);
+  } else {
+    document.getElementById('pin-sub').textContent=savedPin?'Введи PIN':'Создай 6-значный PIN';
+    el.style.display='flex';
+  }
+  _pinInput='';updatePinDots();
+}
+let _pinInput='',_pinFirst='';
+function pinKey(k){
+  if(k==='⌫'){_pinInput=_pinInput.slice(0,-1);}
+  else if(_pinInput.length<6){_pinInput+=k;}
+  updatePinDots();
+  if(_pinInput.length===6){
+    if(_pinMode==='enter'){
+      const saved=localStorage.getItem('lifeos_pin');
+      if(_pinInput===saved){
+        document.getElementById('pin-screen').style.display='none';
+        document.getElementById('auth-screen').style.display='none';
+        const _pinEmail=localStorage.getItem('lifeos_pin_email')||'local@lifeos';
+        const _kl=document.getElementById('key-loading');if(_kl)_kl.classList.add('show');
+        deriveCryptoKey(_pinEmail,_pinInput).then(key=>{
+          if(_kl)_kl.classList.remove('show');
+          _cryptoKey=key;
+          const raw=load();
+          if(raw?.encrypted){decryptG(raw,key).then(d=>{G=d;ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();}).catch(()=>{G=defaultG();ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();});}
+          else{G=raw||defaultG();ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();}
+        });
+      } else {
+        _pinInput='';updatePinDots();
+        document.getElementById('pin-sub').textContent='Неверный PIN. Попробуй снова';
+      }
+    } else if(_pinMode==='set'){
+      if(!_pinFirst){
+        _pinFirst=_pinInput;_pinInput='';updatePinDots();
+        document.getElementById('pin-sub').textContent='Повтори PIN';
+        _pinMode='confirm';
+      }
+    } else if(_pinMode==='confirm'){
+      if(_pinInput===_pinFirst){
+        localStorage.setItem('lifeos_pin',_pinInput);
+        const _pinEmail2=localStorage.getItem('lifeos_pin_email')||'local@lifeos';
+        document.getElementById('pin-screen').style.display='none';
+        document.getElementById('auth-screen').style.display='none';
+        const _kl2=document.getElementById('key-loading');if(_kl2)_kl2.classList.add('show');
+        deriveCryptoKey(_pinEmail2,_pinInput).then(key=>{
+          if(_kl2)_kl2.classList.remove('show');
+          _cryptoKey=key;
+          G=load()||defaultG();ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();
+        });
+      } else {
+        _pinFirst='';_pinInput='';_pinMode='set';updatePinDots();
+        document.getElementById('pin-sub').textContent='PIN не совпал. Начни заново';
+      }
+    }
+  }
+}
+function updatePinDots(){
+  for(let i=0;i<6;i++){
+    const d=document.getElementById('pd'+i);
+    if(d)d.classList.toggle('filled',i<_pinInput.length);
+  }
+}
+
+function load(){try{return JSON.parse(localStorage.getItem(SK)||'null');}catch{return null;}}
+function defaultG(){
+  return{level:1,xp:0,xpNext:100,totalXP:0,streak:0,lastDate:null,streakShield:1,days:{},rewards:DEF_REWARDS(),notes:{},projects:[],achievements:[],fin:{apt:{cur:0,tgt:15000000,hist:[]},cry:{cur:0,tgt:1000000,hist:[]}}};
+}
+function save(){
+  if(!G.lastSaved)G.lastSaved=0;
+  G.lastSaved=Date.now();
+  if(_cryptoKey){
+    encryptG(_cryptoKey).then(payload=>{
+      localStorage.setItem(SK,JSON.stringify(payload));
+      if(_fbReady&&_fbRef){
+        clearTimeout(_fbSaveTimer);
+        const dot=document.getElementById('sync-dot');
+        if(dot)dot.style.background='var(--gold)';
+        _fbSaveTimer=setTimeout(()=>{
+          _fbRef.set(payload).then(()=>{if(dot)dot.style.background='var(--green)';setTimeout(()=>{if(dot)dot.style.background='var(--t3)';},1500);});
+        },600);
+      }
+    });
+  } else {
+    localStorage.setItem(SK,JSON.stringify(G));
+    if(_fbReady&&_fbRef){
+      clearTimeout(_fbSaveTimer);
+      const dot=document.getElementById('sync-dot');
+      if(dot)dot.style.background='var(--gold)';
+      _fbSaveTimer=setTimeout(()=>{
+        _fbRef.set(G).then(()=>{if(dot)dot.style.background='var(--green)';setTimeout(()=>{if(dot)dot.style.background='var(--t3)';},1500);});
+      },600);
+    }
+  }
+}
+let _uid=Date.now();
+function uid(){return++_uid;}
+
+// ── DATA ──
+const WORKOUT_SCHEDULE={1:{type:'full',idx:0},2:{type:'light',idx:0},3:{type:'full',idx:1},4:{type:'light',idx:1},5:{type:'full',idx:2},6:{type:'weekend',idx:0},0:{type:'weekend',idx:1}};
+const WP_FULL=[
+  {day:'ПН — ГРУДЬ / ТРИЦЕПС',foc:'Грудь · Трицепс · Плечи',eq:'Гиря 16 кг · Резинка · Коврик',dur:'~45–50 мин',
+   ex:[{i:'__push__',n:'Отжимания широким хватом',s:'4×15–20'},{i:'__push__',n:'Отжимания узким хватом (трицепс)',s:'3×12'},{i:'__lift__',n:'Жим гири на полу',s:'3×12 каждой'},{i:'__lift__',n:'Жим гири стоя (плечи)',s:'4×10'},{i:'__lift__',n:'Разводка с резинкой',s:'3×15'},{i:'__push__',n:'Обратные отжимания (трицепс)',s:'3×12'}],
+   rest:'Отдых 60–90 сек между подходами'},
+  {day:'СР — СПИНА / БИЦЕПС',foc:'Спина · Бицепс · Задние дельты',eq:'Гиря 16 кг · Резинка',dur:'~45–50 мин',
+   ex:[{i:'__lift__',n:'Тяга гири в наклоне',s:'4×12 каждой'},{i:'__lift__',n:'Горизонтальная тяга резинки',s:'3×15'},{i:'__lift__',n:'Сгибание с гирей (бицепс)',s:'3×12'},{i:'__lift__',n:'Молоток с резинкой',s:'3×15'},{i:'__lift__',n:'Тяга в наклоне (задние дельты)',s:'3×15'},{i:'__lift__',n:'Шраги с гирей',s:'3×15'}],
+   rest:'Темп медленный на опускание · отдых 60–90 сек'},
+  {day:'ПТ — НОГИ / ЯГОДИЦЫ',foc:'Квадрицепс · Ягодицы · Бицепс бедра',eq:'Гиря 16 кг · Резинка',dur:'~45–50 мин',
+   ex:[{i:'__leg__',n:'Приседания с гирей',s:'4×15'},{i:'__leg__',n:'Румынская тяга с гирей',s:'3×12'},{i:'__leg__',n:'Выпады с гирей',s:'3×10 каждой'},{i:'__leg__',n:'Ягодичный мост с гирей',s:'4×15'},{i:'__leg__',n:'Зашагивания на стул',s:'3×10 каждой'},{i:'__leg__',n:'Приседание сумо с гирей',s:'3×15'}],
+   rest:'Отдых 90 сек — большие группы требуют восстановления'},
+];
+const WP_WEEKEND=[
+  {day:'СБ — ПРОГУЛКА / РАСТЯЖКА',foc:'Восстановление · Подвижность · Свежий воздух',eq:'Коврик · Без инвентаря',dur:'~20 мин',
+   ex:[{i:'__walk__',n:'Прогулка на свежем воздухе',s:'20–30 мин'},{i:'__stretch__',n:'Растяжка всего тела',s:'5–7 мин'},{i:'__rotate__',n:'Вращения суставов',s:'1×60 сек'},{i:'__stretch__',n:'Поза ребёнка / скручивания',s:'2×30 сек'}],
+   rest:'Без спешки — это день восстановления'},
+  {day:'ВС — ЙОГА / ДЫХАНИЕ',foc:'Гибкость · Спокойствие · Восстановление',eq:'Коврик',dur:'~15–20 мин',
+   ex:[{i:'__stretch__',n:'Дыхание 4-7-8 (успокоение)',s:'3 цикла'},{i:'__stretch__',n:'Поза кошки-коровы',s:'2×10'},{i:'__stretch__',n:'Поза голубя (бёдра)',s:'30 сек каждая'},{i:'__stretch__',n:'Скручивание лёжа',s:'30 сек каждая сторона'},{i:'__stretch__',n:'Шавасана (расслабление)',s:'3–5 мин'}],
+   rest:'Полное спокойствие — никакого таймера'},
+];
+const WP_LIGHT=[
+  {day:'ВТ — РАЗМИНКА / ПОДВИЖНОСТЬ',foc:'Суставная гимнастика · Лёгкий кардио',eq:'Коврик · Без инвентаря',dur:'~15 мин',
+   ex:[{i:'__rotate__',n:'Вращения плеч / шеи / бёдер',s:'1×30 сек каждое'},{i:'__leg__',n:'Приседания воздушные',s:'2×15'},{i:'__push__',n:'Отжимания лёгкие',s:'2×10'},{i:'__stretch__',n:'Растяжка: поза голубя',s:'30 сек каждая сторона'},{i:'__stretch__',n:'Наклоны / скручивания стоя',s:'1×60 сек'}],
+   rest:'Без отдыха — всё плавно и в своём темпе'},
+  {day:'ЧТ — ЗАРЯДКА / ПРЕСС',foc:'Корпус · Стабилизация · Дыхание',eq:'Коврик · Без инвентаря',dur:'~15 мин',
+   ex:[{i:'__stretch__',n:'Планка',s:'3×30–45 сек'},{i:'__stretch__',n:'Скручивания (пресс)',s:'2×15'},{i:'__stretch__',n:'Боковая планка',s:'2×20 сек каждая'},{i:'__stretch__',n:'Кошка-корова',s:'1×10 повторений'},{i:'__run__',n:'Прыжки на месте / джампинг-джек',s:'1×60 сек'}],
+   rest:'Без отдыха или 15–20 сек'},
+];
+const WP_MORNING=[
+  {day:'УТРО — ЗАРЯДКА МЫШЦ ТАЗА',foc:'Тазовое дно · Стабилизация · Осанка',eq:'Коврик · Без инвентаря',dur:'~10–15 мин',type:'morning',
+   ex:[
+     {i:'__stretch__',n:'Кегель — сжатие тазового дна',s:'3×15 сек (держать + расслабить)'},
+     {i:'__leg__',n:'Ягодичный мост',s:'3×15'},
+     {i:'__leg__',n:'Ягодичный мост на одной ноге',s:'2×10 каждой'},
+     {i:'__stretch__',n:'Поза ребёнка (растяжка таза)',s:'1×60 сек'},
+     {i:'__rotate__',n:'Вращения таза стоя',s:'2×20 (по и против часовой)'},
+     {i:'__stretch__',n:'Кошка-корова с акцентом на таз',s:'2×10'},
+     {i:'__leg__',n:'Приседание с паузой внизу',s:'2×10 (держать 3 сек)'},
+   ],
+   rest:'Без спешки — дыхание глубокое, движения плавные'},
+];
+
+function defCps(dow){
+  const isWeekend=dow===0||dow===6;
+  const a=[
+    {id:uid(),icon:'__morning__',name:'Подъём / утро',time:isWeekend?'09:00':'07:15',xp:20,arrived:false,tasks:[
+      {id:uid(),name:'Выпить витамины',xp:0,done:false},
+      {id:uid(),name:'Прочитать TG',xp:0,done:false},
+      {id:uid(),name:'Зарядка мышц таза',xp:0,done:false},
+    ]},
+    {id:uid(),icon:'__crypto__',name:'Крипта',time:isWeekend?'09:30':'07:35',xp:30,arrived:false,tasks:[
+      {id:uid(),name:'Meteora — Check position',xp:0,done:false},
+      {id:uid(),name:'Opinion — Check news',xp:0,done:false},
+      {id:uid(),name:'Polymarket — Bet',xp:0,done:false},
+      {id:uid(),name:'Predict.fun — Check news',xp:0,done:false},
+      {id:uid(),name:'Ethos — Daily task',xp:0,done:false},
+    ]},
+  ];
+  if(!isWeekend) a.push({id:uid(),icon:'__work__',name:'Работа',time:'09:00',xp:50,arrived:false,tasks:[]});
+  a.push({id:uid(),icon:'__food__',name:'Ужин / Готовка',time:'18:00',xp:10,arrived:false,tasks:[
+    {id:uid(),name:'Приготовить еду',xp:0,done:false},
+    {id:uid(),name:'Подкаст (фоном)',xp:0,done:false},
+  ]});
+  if(dow>=1&&dow<=5) a.push({id:uid(),icon:'__career__',name:'Карьера',time:'19:00',xp:20,arrived:false,tasks:[
+    {id:uid(),name:'Поискать варианты работы',xp:0,done:false},
+    {id:uid(),name:'Поискать обучение в МБА',xp:0,done:false},
+  ]});
+  const ws=WORKOUT_SCHEDULE[dow];
+  if(ws){
+    if(ws.type==='full') a.push({id:uid(),icon:'__train__',name:'Тренировка',time:'19:30',xp:40,arrived:false,tasks:[]});
+    else if(ws.type==='light') a.push({id:uid(),icon:'__light__',name:'Разминка',time:'19:30',xp:15,arrived:false,tasks:[]});
+    else if(ws.type==='weekend'&&dow===6) a.push({id:uid(),icon:'__walk__',name:'Прогулка / Растяжка',time:'11:00',xp:20,arrived:false,tasks:[
+      {id:uid(),name:'Прогулка 20–30 мин',xp:0,done:false},
+      {id:uid(),name:'Растяжка тела',xp:0,done:false},
+    ]});
+    else if(ws.type==='weekend'&&dow===0) a.push({id:uid(),icon:'__yoga__',name:'Йога / Дыхание',time:'11:00',xp:20,arrived:false,tasks:[
+      {id:uid(),name:'Дыхание 4-7-8 (3 цикла)',xp:0,done:false},
+      {id:uid(),name:'Поза кошки-коровы 2×10',xp:0,done:false},
+      {id:uid(),name:'Шавасана (расслабление)',xp:0,done:false},
+    ]});
+  }
+  a.push({id:uid(),icon:'__home__',name:'Вечер дома',time:'20:00',xp:30,arrived:false,tasks:[
+    {id:uid(),name:'Meteora — Анализ кошельков',xp:0,done:false},
+    {id:uid(),name:'Opensea — Задания',xp:0,done:false},
+    {id:uid(),name:'Разобрать избранное',xp:0,done:false},
+    {id:uid(),name:'Выписать проекты из избранного',xp:0,done:false},
+    {id:uid(),name:'Nado Varitional — Шорт/Лонг',xp:0,done:false},
+    {id:uid(),name:'Статьи',xp:0,done:false},
+    {id:uid(),name:'X / Base — активность (ответы, идеи)',xp:0,done:false},
+  ]});
+  if(G&&G.deletedTasks&&G.deletedTasks.length){
+    a.forEach(cp=>{cp.tasks=cp.tasks.filter(t=>!G.deletedTasks.includes(t.name));});
+  }
+  // фильтруем навсегда удалённые блоки
+  let result=a;
+  if(G&&G.deletedCps&&G.deletedCps.length){
+    result=a.filter(cp=>!G.deletedCps.includes(cp.name));
+  }
+  // применяем постоянные блоки (permCps) — кастомные блоки в новые дни
+  if(G&&G.permCps){
+    G.permCps.forEach(pc=>{
+      if(!pc.days.includes(dow))return;
+      if(result.some(c=>c.name===pc.name))return;
+      result.push({id:uid(),icon:pc.icon,name:pc.name,time:pc.time,xp:pc.xp,arrived:false,tasks:[]});
+    });
+  }
+  // применяем постоянные задачи (permTasks) — для всех новых дней
+  if(G&&G.permTasks){
+    G.permTasks.forEach(pt=>{
+      if(!pt.days.includes(dow))return;
+      const cp=result.find(c=>c.name===(pt.blockName||''));
+      if(cp&&!cp.tasks.some(t=>t.name===pt.name))cp.tasks.push({id:uid(),name:pt.name,xp:0,done:false,perm:true});
+    });
+  }
+  result.sort((x,y)=>x.time.localeCompare(y.time));
+  return result;
+}
+
+const DEF_REWARDS=()=>[
+  {id:uid(),icon:'__reward_food__',name:'Пицца',desc:'Заказать пиццу',xp:400,cat:'Еда',bought:false,custom:false},
+  {id:uid(),icon:'__reward_drink__',name:'Лёгкий перекус',desc:'Перекус на выбор',xp:200,cat:'Еда',bought:false,custom:false},
+  {id:uid(),icon:'__reward_game__',name:'Игровой день',desc:'Целый день для игр',xp:1200,cat:'Игры',bought:false,custom:false},
+  {id:uid(),icon:'__reward_movie__',name:'Кино вечером',desc:'Фильм или сериал',xp:300,cat:'Развлечения',bought:false,custom:false},
+  {id:uid(),icon:'__reward_sleep__',name:'Поспать до обеда',desc:'Один раз без будильника',xp:600,cat:'Отдых',bought:false,custom:false},
+  {id:uid(),icon:'__reward_burger__',name:'Бургер',desc:'Хороший ресторан',xp:350,cat:'Еда',bought:false,custom:false},
+  {id:uid(),icon:'__reward_car__',name:'Прогулка на машине',desc:'Поехать куда захочется',xp:700,cat:'Отдых',bought:false,custom:false},
+  {id:uid(),icon:'__reward_shop__',name:'Купить себе',desc:'Одежда, техника — на выбор',xp:2500,cat:'Другое',bought:false,custom:false},
+  {id:uid(),icon:'__reward_friends__',name:'Вечер с друзьями',desc:'Провести вечер с друзьями',xp:900,cat:'Отдых',bought:false,custom:false},
+  {id:uid(),icon:'__reward_music__',name:'Новый плейлист',desc:'Собрать плейлист под настроение',xp:150,cat:'Развлечения',bought:false,custom:false},
+];
+
+let G=load()||defaultG();
+const TIME_MAP={'Подъём / утро':'07:15','Крипта':'07:35','Работа':'09:00','Ужин / Готовка':'18:00','Карьера':'19:00','Тренировка':'19:30','Разминка':'19:30','Вечер дома':'20:00','Прогулка / Растяжка':'11:00','Йога / Дыхание':'11:00'};
+Object.values(G.days).forEach(day=>{if(day.cps)day.cps.forEach(cp=>{if(TIME_MAP[cp.name])cp.time=TIME_MAP[cp.name];});});
+save();
+if(!G.rewards)G.rewards=DEF_REWARDS();
+if(!G.projects)G.projects=[];
+const _digestProjects=[{"name":"Abstract","status":"active","next":"Собрать XP, Gate LP Badge: своп ETH + добавить ликву, ежедневные задания","inp":0,"out":0,"date":""},{"name":"xStocks","status":"active","next":"Подключить кошелёк → получить 20% буст. Трейдинг + холд + ликва → поинты","inp":0,"out":0,"date":""},{"name":"Variational","status":"active","next":"Фармить поинты через объёмы и ликву. Фандинг >2% — арбитраж","inp":0,"out":0,"date":""},{"name":"Nado (nadoHQ)","status":"active","next":"Поинты за объём и рефы. Объёмы + рефы — главное","inp":0,"out":0,"date":""},{"name":"01.xyz","status":"active","next":"Фармить поинты через объём на мейне (~200k obj = ~237 pts)","inp":0,"out":0,"date":""},{"name":"Noise","status":"wait","next":"Зарегаться на waitlist. Ставки на популярный контент в интернете","inp":0,"out":0,"date":""},{"name":"Immutable Play Portal","status":"active","next":"3 реферала (каждый играет в 2 игры) = $15 гарантом + раффл $1000","inp":0,"out":0,"date":""},{"name":"Limit Break (AppTokens)","status":"active","next":"Зарегаться на тестнет apptokens.com/testnet-signup","inp":0,"out":0,"date":""},{"name":"Sunday Robotics","status":"active","next":"Заполнить Beta WL → форма на почту","inp":0,"out":0,"date":""},{"name":"Robinhood L2","status":"active","next":"Тестнет: токены → домен → GM → Deploy → бейдж","inp":0,"out":0,"date":""},{"name":"Perle Labs","status":"active","next":"Снепшот скоро — добить квесты на платформе","inp":0,"out":0,"date":""},{"name":"Callshot","status":"active","next":"callshot.com → ввести почту, сминтить карточку, нагнать рефов","inp":0,"out":0,"date":""},{"name":"Bulk (Solana Perp)","status":"active","next":"Тестнет Paper Mainnet. 10–15 минут, бесплатно. Tier 3","inp":0,"out":0,"date":""},{"name":"Oshi","status":"active","next":"Минт Oshi Pass → OG Badge → возможный дроп","inp":0,"out":0,"date":""},{"name":"Noble L1","status":"active","next":"18 марта запуск EVM L1 — следить за активностью","inp":0,"out":0,"date":""}];
+_digestProjects.forEach(dp=>{if(!G.projects.some(p=>p.name===dp.name)){G.projects.push({id:++_uid,...dp});}});
+save();
+if(!G.notes)G.notes={};
+if(!G.fin)G.fin={apt:{cur:0,tgt:15000000,hist:[]},cry:{cur:0,tgt:1000000,hist:[]}};
+
+let curDate=new Date();
+let _buyId=null;
+
+function ensureDay(d){
+  const k=dkey(d),dow=d.getDay();
+  if(!G.days[k]){
+    const yesterday=addDays(d,-1),yk=dkey(yesterday);
+    if(G.days[yk]&&!G.days[yk].cps.every(c=>c.arrived)&&G.streak>0){
+      if((G.streakShield||0)>0){G.streakShield--;showToast('▣ Щит использован! Стрик сохранён. Осталось: '+G.streakShield);}
+      else{G.streak=0;showToast('— Серия прервана. Но путь продолжается.');}
+    }
+    G.days[k]={cps:defCps(dow),tasksDone:{}};
+  }
+  if(!G.days[k].tasksDone)G.days[k].tasksDone={};
+  return G.days[k];
+}
+
+// ── PAGES ──
+let _statsPeriod=7;
+function setStatsPeriod(n){
+  _statsPeriod=n;
+  document.getElementById('spb-7')?.classList.toggle('on',n===7);
+  document.getElementById('spb-30')?.classList.toggle('on',n===30);
+  renderStatsPage();
+}
+
+function pg(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('on'));
+  const pageEl=document.getElementById('page-'+p);
+  if(pageEl)pageEl.classList.add('on');
+  const navIdx={dash:0,work:1,shop:2,fin:3}[p];
+  const navBtns=document.querySelectorAll('.nav-btn');
+  if(navIdx!==undefined&&navBtns[navIdx])navBtns[navIdx].classList.add('on');
+  if(p==='dash')renderDash();
+  if(p==='work')renderWorkout();
+  if(p==='shop')renderShop();
+  if(p==='fin')renderFin();
+  if(p==='proj')renderProjPage();
+  if(p==='stats')renderStatsPage();
+}
+
+function renderStatsPage(){
+  const days=_statsPeriod;
+  const today=new Date();
+  const todayKey=dkey(today);
+
+  // XP per day array for last N days
+  const xpByDay=[];
+  const dayLabels=[];
+  for(let i=days-1;i>=0;i--){
+    const d=addDays(today,-i);
+    const k=dkey(d);
+    const dayData=G.days[k];
+    const xp=dayData?dayData.cps.reduce((a,c)=>(c.arrived?a+c.xp:a)+c.tasks.filter(t=>t.done).reduce((x,t)=>x+(t.xp||0),0),0):0;
+    xpByDay.push(xp);
+    dayLabels.push(WD[d.getDay()].slice(0,2));
+  }
+  const totalXP=xpByDay.reduce((a,v)=>a+v,0);
+  const maxXP=Math.max(...xpByDay,1);
+
+  // Blocks closed pct
+  let totalBlocks=0,doneBlocks=0;
+  for(let i=0;i<days;i++){
+    const k=dkey(addDays(today,-i));
+    const dayData=G.days[k];
+    if(dayData){totalBlocks+=dayData.cps.length;doneBlocks+=dayData.cps.filter(c=>c.arrived).length;}
+  }
+  const blocksPct=totalBlocks?Math.round(doneBlocks/totalBlocks*100):0;
+
+  // Best streak
+  let bestStreak=G.streak,cur=0;
+  const sortedDays=Object.keys(G.days).sort();
+  sortedDays.forEach(k=>{
+    const d=G.days[k];
+    if(d&&d.cps.every(c=>c.arrived)&&d.cps.length){cur++;bestStreak=Math.max(bestStreak,cur);}
+    else cur=0;
+  });
+
+  // Update KPIs
+  document.getElementById('st-xp-total').textContent=totalXP;
+  document.getElementById('st-streak').textContent=G.streak;
+  document.getElementById('st-streak-best').textContent='Лучший: '+bestStreak;
+  document.getElementById('st-blocks-pct').textContent=blocksPct+'%';
+  document.getElementById('st-level').textContent=G.level;
+  document.getElementById('st-xp-next').textContent=G.xp+'/'+G.xpNext+' XP';
+
+  // XP Bar chart
+  const chartEl=document.getElementById('st-xp-chart');
+  if(chartEl){
+    chartEl.innerHTML=xpByDay.map((xp,i)=>{
+      const h=Math.round((xp/maxXP)*56)+2;
+      const isToday=(days-1-i)===0;
+      return`<div class="stats-bar-wrap">
+        <div class="stats-bar ${isToday?'today':''}" style="height:${h}px"></div>
+        <div class="stats-bar-lbl">${dayLabels[i]}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Streak history dots (30 days)
+  const histEl=document.getElementById('st-streak-hist');
+  if(histEl){
+    const dots=[];
+    for(let i=29;i>=0;i--){
+      const k=dkey(addDays(today,-i));
+      const d=G.days[k];
+      const done=d&&d.cps.length&&d.cps.every(c=>c.arrived);
+      const isT=i===0;
+      dots.push(`<div class="stats-streak-dot ${isT?'today':done?'done':''}"></div>`);
+    }
+    histEl.innerHTML=dots.join('');
+  }
+
+  // Finance goals
+  const finEl=document.getElementById('st-fin-goals');
+  if(finEl){
+    const goals=[
+      {ico:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><polyline points="9 22 9 13 15 13 15 22"/></svg>',name:'Квартира',cur:G.fin.apt.cur,tgt:G.fin.apt.tgt,sym:'₽'},
+      {ico:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',name:'Крипта',cur:G.fin.cry.cur,tgt:G.fin.cry.tgt,sym:'$'},
+    ];
+    finEl.innerHTML='<div class="stats-chart-title">Прогресс целей</div>'+goals.map(g=>{
+      const pct=Math.min(100,Math.round(g.cur/g.tgt*100));
+      return`<div class="stats-goal-row">
+        <div class="stats-goal-ico">${g.ico}</div>
+        <div class="stats-goal-info">
+          <div class="stats-goal-name">${g.name}</div>
+          <div class="stats-goal-bar-wrap"><div class="stats-goal-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="stats-goal-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Finance history
+  const finHistEl=document.getElementById('st-fin-hist-list');
+  if(finHistEl){
+    const allHist=[
+      ...(G.fin.apt.hist||[]).map(h=>({...h,sym:'₽',cat:'Квартира'})),
+      ...(G.fin.cry.hist||[]).map(h=>({...h,sym:'$',cat:'Крипта'})),
+    ].sort((a,b)=>b.date?.localeCompare(a.date||'')||0).slice(0,8);
+    if(!allHist.length){
+      finHistEl.innerHTML='<div style="font-size:12px;color:#404040;padding:8px 0">Нет операций</div>';
+    } else {
+      finHistEl.innerHTML=allHist.map(h=>`
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+          <span style="font-size:12px;color:#707070">${h.date||''} · ${h.cat}</span>
+          <span style="font-family:'Cinzel',serif;font-size:12px;color:${h.a>0?'#FFB800':'#e05a7a'}">${h.a>0?'+':''}${Math.abs(h.a).toLocaleString()} ${h.sym}</span>
+        </div>`).join('');
+    }
+  }
+}
+
+function renderProjPage(){
+  try{
+  if(!G.projects)G.projects=[];
+  const list=document.getElementById('pp-list');
+  if(!list)return;
+  const totalIn=G.projects.reduce((a,p)=>a+(+p.inp||0),0);
+  const totalOut=G.projects.reduce((a,p)=>a+(+p.out||0),0);
+  const pnl=totalOut-totalIn;
+  const pnlEl=document.getElementById('pp-pnl-val');
+  const pnlHead=document.getElementById('pp-pnl');
+  if(pnlEl){pnlEl.textContent=(pnl>=0?'+':'')+pnl.toLocaleString('ru-RU');pnlEl.style.color=pnl>0?'#FFB800':pnl<0?'#e05a7a':'#505050';}
+  if(pnlHead){pnlHead.textContent=(pnl>=0?'+':'')+pnl.toLocaleString('ru-RU');pnlHead.style.color=pnl>0?'#FFB800':pnl<0?'#e05a7a':'#505050';}
+  const tiEl=document.getElementById('pp-total-in');if(tiEl)tiEl.textContent=totalIn.toLocaleString('ru-RU');
+  const toEl=document.getElementById('pp-total-out');if(toEl)toEl.textContent=totalOut.toLocaleString('ru-RU');
+  if(!G.projects.length){
+    list.innerHTML='<div class="pp-empty"><div class="pp-empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l10 10-10 10L2 12z"/></svg></div><div class="pp-empty-text">Нет проектов</div></div>';
+    return;
+  }
+  const statusLabel={active:'активен',wait:'ожидание',done:'завершён'};
+  list.innerHTML=G.projects.map((p,idx)=>{
+    const profit=(+p.out||0)-(+p.inp||0);
+    const profitStr=profit===0?'0':(profit>0?'+':'')+profit.toLocaleString('ru-RU');
+    const pc=profit>0?'pos':profit<0?'neg':'zero';
+    const sc=p.status||'wait';
+    const _localIcoMap=typeof icoMap!=='undefined'?icoMap:{};
+    const icoKey=Object.entries(_localIcoMap).find(([k])=>p.name&&p.name.includes(k))?.[1]||'__crypto__';
+    const ico=resolveIcon(icoKey,18);
+    return`<div class="pp-card" style="animation-delay:${idx*50}ms">
+      <div class="pp-card-top" onclick="editProj(${p.id})">
+        <div class="pp-card-icon">${ico}</div>
+        <div class="pp-card-info">
+          <div class="pp-card-name">${p.name||'—'}</div>
+          <div class="pp-card-next">${p.next||'Нет следующего шага'}</div>
+        </div>
+        <div class="pp-card-right">
+          <div class="pp-card-profit ${pc}">${profitStr}</div>
+          <span class="pp-card-status ${sc}">${statusLabel[sc]||'—'}</span>
+        </div>
+      </div>
+      <div class="pp-card-actions">
+        <button class="pp-card-btn edit" onclick="editProj(${p.id})">✏ Редакт</button>
+        <button class="pp-card-btn del" onclick="if(confirm('Удалить?')){delProj(${p.id});renderProjPage();}">✕ Удалить</button>
+      </div>
+    </div>`;
+  }).join('');
+  }catch(e){console.error('renderProjPage error:',e);const list=document.getElementById('pp-list');if(list)list.innerHTML='<div class="pp-empty"><div class="pp-empty-text">Ошибка загрузки. Обновите страницу.</div></div>';}
+}
+
+// ── DASHBOARD ──
+function renderDash(){renderHeader();renderTimeline();renderWeekMini();renderMidStats();renderFinMini();renderTodayWorkout();renderProjects();renderWeekDash();renderQuote();renderMobileWorkout();if(isMobile())renderMobileProjects();}
+
+function renderHeader(){
+  document.getElementById('h-lv').textContent=G.level;
+  document.getElementById('h-str').textContent=G.streak;
+  // Три состояния стрика
+  const strEl=document.getElementById('h-str');
+  const today=dkey(new Date());
+  const dayDone=G.days[today]&&G.days[today].cps.some(c=>c.arrived);
+  if(G.streak===0){strEl.style.color='#2a2a2a';}
+  else if(!dayDone){strEl.style.color='#505050';} // серый — сегодня не отметил
+  else{strEl.style.color='#FFB800';} // золото — активен
+  document.getElementById('h-tot').textContent=G.totalXP;
+  const p=Math.min(100,G.xp/G.xpNext*100);
+  document.getElementById('h-xpf').style.width=p+'%';
+  document.getElementById('h-xpt').textContent=G.xp+'/'+G.xpNext;
+}
+
+function renderTimeline(){
+  const d=curDate,dow=d.getDay(),day=ensureDay(d),cps=day.cps;
+  document.getElementById('dl-name').textContent=WD[dow];
+  document.getElementById('dl-date').textContent=`${d.getDate()} ${MN[d.getMonth()]} ${d.getFullYear()}`;
+  const done=cps.filter(c=>c.arrived).length;
+  document.getElementById('dpbf').style.width=(cps.length?done/cps.length*100:0)+'%';
+  const tl=document.getElementById('tl');tl.innerHTML='';
+  // Empty state
+  if(!cps.length){
+    tl.innerHTML=`<div class="tl-empty"><div class="tl-empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l10 10-10 10L2 12z"/></svg></div><div class="tl-empty-title">День пуст</div><div class="tl-empty-sub">Блоки дня создаются автоматически</div><div class="tl-empty-hint">Нажми + чтобы добавить свой блок</div></div>`;
+    return;
+  }
+  const dk=dkey(d);
+  const fa=cps.findIndex(c=>!c.arrived);
+  const mob=isMobile();
+  cps.forEach((cp,i)=>{
+    const isDone=cp.arrived,isAct=i===fa;
+    const item=document.createElement('div');
+    item.className='cp-item'+(isDone?' done':isAct?' active':'');
+    // tasks rows
+    const tasksHtml=cp.tasks.map(t=>{
+      const swipeDel=mob?`<div class="ct-swipe-del" onclick="event.stopImmediatePropagation();event.stopPropagation();delCpTask('${dk}',${cp.id},${t.id})">✕</div>`:'';
+      const permDel=!t.permanent&&!mob?`<span class="ct-del ct-del-perm" onclick="event.stopImmediatePropagation();event.stopPropagation();delCpTaskForever('${dk}',${cp.id},${t.id})" title="Удалить навсегда">✕</span>`:'';
+      const delBtn=!mob?`<span class="ct-del" onclick="event.stopImmediatePropagation();event.stopPropagation();delCpTask('${dk}',${cp.id},${t.id})" title="Удалить сегодня">✕</span>`:'';
+      const mobDelBtn=mob?`<button class="ct-mob-del" onclick="event.stopImmediatePropagation();event.stopPropagation();delCpTask('${dk}',${cp.id},${t.id})" title="Удалить">✕</button>`:'';
+      return `<div class="ct ${t.done?'done':''}" data-tid="${t.id}" data-cpid="${cp.id}" data-dk="${dk}" onclick="handleTaskTap(this,event)">
+        <div class="ct-cb">${t.done?'✓':''}</div>
+        <div class="ct-nm">${t.name}</div>
+        <div class="ct-xp">${t.xp?'+'+t.xp:''}</div>
+        ${delBtn}${permDel}${mobDelBtn}${swipeDel}
+      </div>`;
+    }).join('');
+    // add task row
+    const addTaskRow=!isDone?`<div class="ct-add-row" id="add-row-${cp.id}" onclick="activateAddRow(${cp.id},'${dk}')">
+      <span class="ct-add-label">+ добавить задачу...</span>
+      <input class="ct-add-input" id="cti${cp.id}" placeholder="Название задачи..." onkeydown="if(event.key==='Enter')addCpTask('${dk}',${cp.id})" onblur="deactivateAddRow(${cp.id})">
+    </div>`:'';
+    // arrive button
+    const arrBtn=isAct?`<button class="arr-btn" onclick="handleArriveTap(this,'${dk}',${cp.id})">Выполнено ✓ <span style="opacity:.6;font-size:11px;font-weight:400;margin-left:8px">+${cp.xp} XP</span></button>`:'';
+    const arrLbl=isDone?`<div class="arr-lbl" onclick="toggleDoneCard(this)">✓ закрыто</div>`:'';
+    // next block hint
+    let nextHint='';
+    if(isDone&&mob){const h=getNextBlockHint(dk,cp.id);if(h)nextHint=`<div class="next-block-hint">${h}</div>`;}
+    item.innerHTML=`
+      <div class="cp-lc"><div class="cp-dot"></div>${i<cps.length-1?'<div class="cp-vl"></div>':''}</div>
+      <div class="cp-card">
+        <div class="cp-top">
+          <div class="cp-ico">${resolveIcon(cp.icon,15)}</div>
+          <div class="cp-nm">${cp.name}</div>
+          <div class="cp-tm">${cp.time}</div>
+          ${isDone?'<div class="cp-dm">✓</div>':''}
+          <div class="cp-xb">+${cp.xp}xp</div>
+          ${!isDone?`<div class="cp-del-btn" onclick="event.stopPropagation();toggleCpDelMenu(this)" title="Удалить блок">✕<div class="cp-del-menu"><button onclick="event.stopPropagation();delCpFromDay('${dk}',${cp.id},this)">Только сегодня</button><button onclick="event.stopPropagation();delCpForever('${cp.name}',this)">Навсегда (все дни)</button></div></div>`:''}
+        </div>
+        <div class="cp-tasks">${tasksHtml}</div>
+        ${addTaskRow}${arrBtn}${arrLbl}
+      </div>${nextHint}`;
+    tl.appendChild(item);
+  });
+  // Init swipe on mobile
+  if(mob) setTimeout(()=>initAllSwipes(dk),0);
+}
+
+// ── Checkpoint delete menu ──
+function toggleCpDelMenu(el){
+  document.querySelectorAll('.cp-del-menu.open').forEach(m=>{if(m!==el.querySelector('.cp-del-menu'))m.classList.remove('open');});
+  el.querySelector('.cp-del-menu').classList.toggle('open');
+}
+document.addEventListener('click',()=>document.querySelectorAll('.cp-del-menu.open').forEach(m=>m.classList.remove('open')));
+
+function delCpFromDay(dk, cpId, triggerEl){
+  if(triggerEl){const m=triggerEl.closest('.cp-del-menu');if(m)m.classList.remove('open');}
+  const day=G.days[dk];
+  if(!day)return;
+  const cp=day.cps.find(c=>c.id===cpId);
+  if(!cp)return;
+  day.cps=day.cps.filter(c=>c.id!==cpId);
+  save();renderTimeline();renderMidStats();
+  showToast(`Блок убран из этого дня`);
+}
+
+function delCpForever(cpName, triggerEl){
+  if(triggerEl){const m=triggerEl.closest('.cp-del-menu');if(m)m.classList.remove('open');}
+  if(!confirm(`Удалить блок "${cpName}" из всех дней навсегда?`))return;
+  // Удаляем из всех существующих дней
+  Object.values(G.days).forEach(day=>{
+    day.cps=day.cps.filter(c=>c.name!==cpName);
+  });
+  // Удаляем из permCps (постоянных блоков)
+  if(G.permCps)G.permCps=G.permCps.filter(c=>c.name!==cpName);
+  // Запоминаем как удалённый навсегда (чтобы не появлялся в новых днях из defCps)
+  if(!G.deletedCps)G.deletedCps=[];
+  if(!G.deletedCps.includes(cpName))G.deletedCps.push(cpName);
+  save();renderTimeline();renderMidStats();
+  showToast(`Блок "${cpName}" удалён навсегда`);
+}
+
+function renderWeekMini(){
+  const mon=startOfWeek(new Date()),tk=dkey(new Date()),ck=dkey(curDate);
+  const c=document.getElementById('wm');c.innerHTML='';
+  for(let i=0;i<7;i++){
+    const d=addDays(mon,i),k=dkey(d),isT=k===tk,isC=k===ck;
+    const dd=G.days[k],hd=dd&&dd.cps.some(c=>c.arrived);
+    const b=document.createElement('div');
+    b.className='wdb'+(isC?' sel':isT?' tod':hd?' hd':'');
+    b.innerHTML=`<div class="wdn">${WD[d.getDay()]}</div><div class="wdd">${d.getDate()}</div><div class="wdot"></div>`;
+    b.onclick=()=>{curDate=d;renderDash();};
+    c.appendChild(b);
+  }
+}
+
+function renderMidStats(){
+  const k=dkey(curDate),day=G.days[k];
+  const ct=day?.cps.reduce((a,c)=>a+c.tasks.filter(t=>t.done).length,0)||0;
+  const pt=Object.values(day?.tasksDone||{}).filter(v=>v).length;
+  const xpd=day?.cps.reduce((a,c)=>(c.arrived?a+c.xp:a)+c.tasks.filter(t=>t.done).reduce((x,t)=>x+t.xp,0),0)||0;
+  document.getElementById('sc-done').textContent=ct+pt;
+  document.getElementById('sc-xpd').textContent=xpd;
+  document.getElementById('sc-str').textContent=G.streak;
+}
+
+function renderFinMini(){
+  const a=G.fin.apt,c=G.fin.cry;
+  const ap=Math.min(100,(a.cur/a.tgt)*100),cp2=Math.min(100,(c.cur/c.tgt)*100);
+  document.getElementById('fm-ap').textContent=ap.toFixed(2)+'%';
+  document.getElementById('fm-apb').style.width=ap+'%';
+  document.getElementById('fm-aps').textContent=a.cur.toLocaleString('ru-RU')+' ₽ накоплено';
+  document.getElementById('fm-cp').textContent=cp2.toFixed(2)+'%';
+  document.getElementById('fm-cpb').style.width=cp2+'%';
+  document.getElementById('fm-cps').textContent='$ '+c.cur.toLocaleString('en-US')+' накоплено';
+}
+
+let _twTab=0;
+function twTab(n){_twTab=n;renderTodayWorkout();}
+function renderTodayWorkout(){
+  const dow=curDate.getDay(),sch=WORKOUT_SCHEDULE[dow],el=document.getElementById('tw');
+  const b0=document.getElementById('tw-btn-0'),b1=document.getElementById('tw-btn-1');
+  const activeStyle='background:rgba(201,166,107,.08);border:1px solid rgba(201,166,107,.3);color:var(--gold);';
+  const inactiveStyle='background:none;border:1px solid var(--b2);color:var(--t3);';
+  if(b0)b0.style.cssText=(_twTab===0?activeStyle:inactiveStyle)+'border-radius:0;padding:2px 8px;font-size:8px;cursor:pointer;font-family:JetBrains Mono,monospace;letter-spacing:2px;text-transform:uppercase;';
+  if(b1)b1.style.cssText=(_twTab===1?activeStyle:inactiveStyle)+'border-radius:0;padding:2px 8px;font-size:8px;cursor:pointer;font-family:JetBrains Mono,monospace;letter-spacing:2px;text-transform:uppercase;';
+  if(_twTab===1){
+    const w=WP_MORNING[0];
+    el.innerHTML=`<div class="wk-block"><span class="wk-badge light">УТРО · ${w.dur}</span><div class="wk-title">${w.foc}</div><div class="wk-focus">${w.eq}</div>${w.ex.map(e=>`<div class="wk-ex"><div class="wk-ei">${resolveIcon(e.i,14)}</div><div class="wk-en">${e.n}</div><div class="wk-es">${e.s}</div></div>`).join('')}<div class="wk-rest">${w.rest}</div></div>`;
+    return;
+  }
+  if(!sch||sch.type==='weekend'){
+    const isWeekend=sch&&sch.type==='weekend';
+    if(isWeekend){
+      const w=dow===6?WP_WEEKEND[0]:WP_WEEKEND[1];
+      el.innerHTML=`<div class="wk-block"><span class="wk-badge light">ВЫХОДНОЙ · ${w.dur}</span><div class="wk-title">${w.foc}</div>${w.ex.map(e=>`<div class="wk-ex"><div class="wk-ei">${resolveIcon(e.i,14)}</div><div class="wk-en">${e.n}</div><div class="wk-es">${e.s}</div></div>`).join('')}</div>`;
+    } else {
+      el.innerHTML='<div class="wk-block"><div class="wk-rest-day">День отдыха<br><span style="opacity:.5">Восстановление — тоже часть пути.</span></div></div>';
+    }
+    return;
+  }
+  // Light days → show the full workout for reference (light stays in mob-tw & work page)
+  const w=WP_FULL[sch.idx]||WP_FULL[0];
+  const badge='<span class="wk-badge full">ПОЛНАЯ</span>';
+  el.innerHTML=`<div class="wk-block">${badge}<div class="wk-title">${w.foc}</div><div class="wk-focus">${w.eq}</div>${w.ex.map(e=>`<div class="wk-ex"><div class="wk-ei">${resolveIcon(e.i,14)}</div><div class="wk-en">${e.n}</div><div class="wk-es">${e.s}</div></div>`).join('')}<div class="wk-dur">⏱ ${w.dur}</div><div class="wk-more" onclick="pg('work')">Все тренировки →</div></div>`;
+}
+
+function renderMobileWorkout(){
+  const dow=curDate.getDay();
+  const sch=WORKOUT_SCHEDULE[dow];
+  const tabsEl=document.getElementById('mob-tw-tabs');
+  const cardsEl=document.getElementById('mob-tw-cards');
+  if(!tabsEl||!cardsEl)return;
+
+  // Build workout variants to show
+  const variants=[];
+  if(sch){
+    if(sch.type==='full'){variants.push({label:'ПОЛНАЯ',badge:'full',w:WP_FULL[sch.idx]});}
+    else if(sch.type==='light'){variants.push({label:'РАЗМИНКА',badge:'light',w:WP_LIGHT[sch.idx]});}
+    else if(sch.type==='weekend'){variants.push({label:'ВЫХОДНОЙ',badge:'light',w:dow===6?WP_WEEKEND[0]:WP_WEEKEND[1]});}
+  } else {
+    variants.push({label:'ОТДЫХ',badge:'light',w:null});
+  }
+  variants.push({label:'УТРО',badge:'light',w:WP_MORNING[0]});
+  // Add the other full workouts as quick reference
+  WP_FULL.forEach((w,i)=>variants.push({label:['ПН','СР','ПТ'][i],badge:'full',w}));
+
+  // Render tabs
+  tabsEl.innerHTML=variants.map((v,i)=>`<button class="mob-tw-tab${i===0?' on':''}" onclick="selectMobTwTab(${i})">${v.label}</button>`).join('');
+
+  // Render cards
+  cardsEl.innerHTML=variants.map(v=>{
+    if(!v.w)return`<div class="mob-tw-card"><div class="mob-tw-badge light">ОТДЫХ</div><div class="mob-tw-focus">Восстановление — тоже часть пути.</div></div>`;
+    const exHtml=v.w.ex.map(e=>`<div class="mob-tw-ex"><div class="mob-tw-ei">${resolveIcon(e.i,13)}</div><div class="mob-tw-en">${e.n}</div><div class="mob-tw-es">${e.s}</div></div>`).join('');
+    return`<div class="mob-tw-card"><span class="mob-tw-badge ${v.badge}">${v.label}</span><div class="mob-tw-title">${v.w.foc}</div><div class="mob-tw-focus">${v.w.eq}</div><div class="mob-tw-dur">${v.w.dur}</div>${exHtml}<div class="mob-tw-rest">${v.w.rest}</div></div>`;
+  }).join('');
+}
+
+function selectMobTwTab(idx){
+  document.querySelectorAll('.mob-tw-tab').forEach((t,i)=>t.classList.toggle('on',i===idx));
+  const cards=document.getElementById('mob-tw-cards');
+  if(cards)cards.children[idx]?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
+}
+
+const QUOTES=[
+  {text:"Дисциплина — это выбор между тем, чего ты хочешь сейчас, и тем, чего хочешь больше всего.",author:"Авраам Линкольн"},
+  {text:"Не жди. Время никогда не будет подходящим.",author:"Наполеон Хилл"},
+  {text:"Маленькие ежедневные улучшения — ключ к большим долгосрочным результатам.",author:"Генри Форд"},
+  {text:"Успех — это сумма маленьких усилий, повторяемых день за днём.",author:"Роберт Кольер"},
+  {text:"Не бойся медленного прогресса. Бойся стоять на месте.",author:"Китайская мудрость"},
+  {text:"Каждый день — это новый шанс.",author:""},
+  {text:"Твои действия сегодня — это твоя жизнь завтра.",author:""},
+  {text:"Последовательность важнее интенсивности.",author:""},
+  {text:"Рынок вознаграждает терпеливых и наказывает нетерпеливых.",author:"Уоррен Баффет"},
+  {text:"Не следи за рынком постоянно — следи за собой.",author:""},
+  {text:"Каждая тренировка делает тебя чуть сильнее, чем вчера.",author:""},
+  {text:"Путь в тысячу ли начинается с первого шага.",author:"Лао-цзы"},
+  {text:"Тот, кто победил других — силён. Тот, кто победил себя — могуществен.",author:"Лао-цзы"},
+  {text:"Терпение, упорство и пот создают непобедимую комбинацию успеха.",author:"Наполеон Хилл"},
+];
+function renderQuote(){
+  const el=document.getElementById('quote-block');if(!el)return;
+  const idx=Math.floor(new Date().getDate()*7+new Date().getMonth())%QUOTES.length;
+  const q=QUOTES[idx];
+  el.innerHTML=`"${q.text}"${q.author?`<div style="margin-top:8px;font-size:9px;color:var(--t3);font-style:normal;letter-spacing:2px;text-transform:uppercase">— ${q.author}</div>`:''}`;
+}
+
+// ── PROJECTS ──
+function renderMobileProjects(){
+  const panel=document.getElementById('mpp-list');
+  const pnlEl=document.getElementById('mpp-pnl');
+  if(!panel)return;
+  if(!G.projects||!G.projects.length){
+    panel.innerHTML='<div class="mpp-empty">Нет проектов — нажми + добавить</div>';
+    if(pnlEl)pnlEl.textContent='';
+    return;
+  }
+  const totalPnl=G.projects.reduce((a,p)=>a+(p.out-p.inp),0);
+  if(pnlEl){
+    pnlEl.textContent=(totalPnl>=0?'+':'')+totalPnl.toLocaleString('ru-RU');
+    pnlEl.style.color=totalPnl>0?'#FFB800':totalPnl<0?'#e05a7a':'#505050';
+  }
+  const statusLabel={active:'активен',wait:'ожидание',done:'завершён'};
+  panel.innerHTML=G.projects.map(p=>{
+    const profit=p.out-p.inp;
+    const profitStr=profit===0?'0':(profit>0?'+':'')+profit.toLocaleString('ru-RU');
+    const profitClass=profit>0?'pos':profit<0?'neg':'zero';
+    const sc=p.status||'wait';
+    const _imap={'Abstract':'__work__','Meteora LP':'__crypto__','NFT':'__light__'};const ico=resolveIcon(_imap[p.name]||'__crypto__',20);
+    return`<div class="mpp-item" onclick="editProj(`+p.id+`)">
+      <div class="mpp-icon">${ico}</div>
+      <div class="mpp-info">
+        <div class="mpp-name">${p.name}</div>
+        <div class="mpp-next">${p.next||'—'}</div>
+      </div>
+      <div class="mpp-right">
+        <div class="mpp-profit ${profitClass}">${profitStr}</div>
+        <span class="mpp-status ${sc}">${statusLabel[sc]||'—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderProjects(){
+  if(!G.projects)G.projects=[];
+  const tbody=document.getElementById('proj-tbody');
+  const empty=document.getElementById('proj-empty');
+  if(!G.projects.length){tbody.innerHTML='';empty.style.display='block';document.getElementById('proj-summary').style.display='none';return;}
+  empty.style.display='none';
+  const totalIn=G.projects.reduce((a,p)=>a+p.inp,0);
+  const totalOut=G.projects.reduce((a,p)=>a+p.out,0);
+  const pnl=totalOut-totalIn;
+  document.getElementById('proj-summary').style.display='flex';
+  document.getElementById('proj-total-in').textContent=totalIn.toLocaleString('ru-RU');
+  document.getElementById('proj-total-out').textContent=totalOut.toLocaleString('ru-RU');
+  const pnlEl=document.getElementById('proj-pnl');
+  pnlEl.textContent=(pnl>=0?'+':'')+pnl.toLocaleString('ru-RU');
+  pnlEl.style.color=pnl>0?'var(--gold)':pnl<0?'var(--red3)':'var(--t2)';
+  const statusLabel={active:'АКТИВНЫЙ',wait:'ОЖИДАНИЕ',done:'ЗАВЕРШЁН'};
+  const statusClass={active:'active',wait:'wait',done:'done'};
+  tbody.innerHTML=G.projects.map(p=>{
+    const profit=p.out-p.inp;
+    const profitStr=profit===0?'—':(profit>0?'+':'')+profit.toLocaleString('ru-RU');
+    const profitClass=profit>0?'pos':profit<0?'neg':'';
+    return`<tr>
+      <td style="font-weight:500;color:var(--t1)">${p.name}${p.next?`<div style="font-size:9px;color:var(--gold);margin-top:2px;letter-spacing:.3px">→ ${p.next}</div>`:''}</td>
+      <td>${p.inp?p.inp.toLocaleString('ru-RU'):'—'}</td>
+      <td style="color:var(--t3)">${p.date||'—'}</td>
+      <td class="proj-profit ${profitClass}">${profitStr}</td>
+      <td><span class="proj-status ${statusClass[p.status]||'wait'}">${statusLabel[p.status]||'—'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="proj-del-btn" onclick="editProj(${p.id})" style="margin-right:2px" title="Редактировать">✏️</button>
+        <button class="proj-del-btn" onclick="delProj(${p.id})" title="Удалить">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function saveProj(){
+  const name=document.getElementById('proj-nm').value.trim();if(!name)return;
+  if(!G.projects)G.projects=[];
+  const data={name,inp:+document.getElementById('proj-in').value||0,out:+document.getElementById('proj-out').value||0,date:document.getElementById('proj-date').value.trim(),status:document.getElementById('proj-status').value,next:document.getElementById('proj-next').value.trim()};
+  if(_editProjId){
+    const p=G.projects.find(x=>x.id===_editProjId);
+    if(p)Object.assign(p,data);
+    _editProjId=null;showToast('✓ Проект обновлён');
+  } else {
+    G.projects.push({id:uid(),...data});showToast('✓ Проект добавлен');
+  }
+  save();closeOv('modal-proj');renderProjects();if(document.getElementById('page-proj')?.classList.contains('on'))renderProjPage();
+  document.querySelector('#modal-proj .m-ttl').textContent='Новый проект';
+  document.getElementById('proj-nm').value='';document.getElementById('proj-next').value='';
+}
+function delProj(id){if(!confirm('Удалить проект?'))return;G.projects=G.projects.filter(p=>p.id!==id);save();renderProjects();}
+let _editProjId=null;
+function editProj(id){
+  const p=G.projects.find(x=>x.id===id);if(!p)return;
+  _editProjId=id;
+  document.getElementById('proj-nm').value=p.name;
+  document.getElementById('proj-in').value=p.inp||'';
+  document.getElementById('proj-out').value=p.out||'';
+  document.getElementById('proj-date').value=p.date||'';
+  document.getElementById('proj-next').value=p.next||'';
+  document.getElementById('proj-status').value=p.status||'active';
+  document.querySelector('#modal-proj .m-ttl').textContent='Редактировать проект';
+  document.querySelector('#modal-proj .m-ok').textContent='Сохранить';
+  openOv('modal-proj');
+}
+
+// ── TIMELINE ACTIONS ──
+function addCpTask(dk,cpId){
+  const inp=document.getElementById('cti'+cpId);const name=inp?.value.trim();if(!name)return;
+  const cp=G.days[dk]?.cps.find(c=>c.id===cpId);if(!cp)return;
+  cp.tasks.push({id:uid(),name,done:false,xp:5});
+  save();renderTimeline();setTimeout(()=>{const i=document.getElementById('cti'+cpId);if(i)i.focus();},40);
+}
+function toggleCpTask(dk,cpId,tid){
+  const cp=G.days[dk]?.cps.find(c=>c.id===cpId);if(!cp)return;
+  const t=cp.tasks.find(t=>t.id===tid);if(!t)return;
+  t.done=!t.done;if(t.done)gainXP(t.xp);
+  if(cp.tasks.length>0&&cp.tasks.every(t=>t.done)&&!cp.arrived){
+    setTimeout(()=>arrive(dk,cpId),300);
+  }
+  save();renderTimeline();renderMidStats();
+}
+function delCpTask(dk,cpId,tid){
+  const cp=G.days[dk]?.cps.find(c=>c.id===cpId);if(!cp)return;
+  // If this is a perm task, add to deleted so it won't re-inject today
+  const task=cp.tasks.find(t=>t.id===tid);
+  if(task&&task.perm){
+    if(!G.deletedTasks)G.deletedTasks=[];
+    if(!G.deletedTasks.includes(task.name))G.deletedTasks.push(task.name);
+  }
+  cp.tasks=cp.tasks.filter(t=>t.id!==tid);
+  save();
+  renderTimeline();
+}
+function delCpTaskForever(dk,cpId,tid){
+  if(!confirm('Удалить задачу навсегда из всех дней?'))return;
+  const cp=G.days[dk]?.cps.find(c=>c.id===cpId);
+  const tName=cp?.tasks?.find(t=>t.id===tid)?.name||'';
+  if(!tName){showToast('Задача не найдена');return;}
+  Object.values(G.days).forEach(day=>{day.cps.forEach(c=>{c.tasks=c.tasks.filter(t=>t.name!==tName);});});
+  if(!G.deletedTasks)G.deletedTasks=[];
+  if(!G.deletedTasks.includes(tName))G.deletedTasks.push(tName);
+  if(G.permTasks)G.permTasks=G.permTasks.filter(t=>t.name!==tName);
+  save();renderTimeline();
+  showToast('— "'+tName+'" удалена');
+}
+function arrive(dk,cpId){
+  const day=G.days[dk];if(!day)return;
+  const cp=day.cps.find(c=>c.id===cpId);if(!cp)return;
+  cp.arrived=true;gainXP(cp.xp);
+  if(day.cps.every(c=>c.arrived)){
+    const tk=dkey(new Date());
+    if(G.lastDate!==tk){
+      G.streak++;G.lastDate=tk;
+      if(new Date().getDay()===0){if(!G.streakShield)G.streakShield=0;G.streakShield=Math.min((G.streakShield||0)+1,2);showToast('▣ +1 Защита стрика! Запас: '+G.streakShield);}
+      checkAchievements();save();
+      showToast('✦ День закрыт · серия '+G.streak+(G.streak%7===0?' ✦✦✦':''));
+    }
+  } else showToast('✓ '+cp.name+' +'+cp.xp+' XP');
+  save();renderDash();
+  checkCompletionMoment(dk);
+}
+function shiftDay(n){curDate=addDays(curDate,n);renderDash();scrollToActiveBlock();}
+
+// ── NEW: Checkpoint day selector ──
+let _cpDays=[];
+function setCpDays(days){_cpDays=[...days];renderCpDays();}
+function renderCpDays(){
+  const WD2=['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'];
+  document.getElementById('cp-days').innerHTML=WD2.map((n,i)=>`<div class="paf-d ${_cpDays.includes(i)?'on':''}" onclick="togCpDay(${i})">${n}</div>`).join('');
+}
+function togCpDay(i){_cpDays.includes(i)?_cpDays=_cpDays.filter(d=>d!==i):_cpDays.push(i);renderCpDays();}
+
+function saveCp(){
+  const icon=document.getElementById('cp-ic').value||'__default__';
+  const name=document.getElementById('cp-nm').value.trim()||'Точка';
+  const time=document.getElementById('cp-tm').value||'12:00';
+  const xp=+document.getElementById('cp-xp').value||20;
+
+  if(_cpDays.length===0){
+    // только текущий день
+    const k=dkey(curDate);ensureDay(curDate);
+    G.days[k].cps.push({id:uid(),icon,name,time,xp,arrived:false,tasks:[]});
+    G.days[k].cps.sort((a,b)=>a.time.localeCompare(b.time));
+  } else {
+    // добавить во все дни текущей и следующих недель + в шаблон через permCps
+    if(!G.permCps)G.permCps=[];
+    const newPc={id:uid(),icon,name,time,xp,days:[..._cpDays]};
+    G.permCps.push(newPc);
+    // применить к существующим дням
+    Object.keys(G.days).forEach(dk=>{
+      const d=new Date(dk.replace(/-/g,'/'));
+      const dow=d.getDay();
+      if(!_cpDays.includes(dow))return;
+      if(G.days[dk].cps.some(c=>c.name===name))return;
+      G.days[dk].cps.push({id:uid(),icon,name,time,xp,arrived:false,tasks:[]});
+      G.days[dk].cps.sort((a,b)=>a.time.localeCompare(b.time));
+    });
+    // текущий день тоже
+    const k=dkey(curDate);ensureDay(curDate);
+    if(!G.days[k].cps.some(c=>c.name===name)){
+      G.days[k].cps.push({id:uid(),icon,name,time,xp,arrived:false,tasks:[]});
+      G.days[k].cps.sort((a,b)=>a.time.localeCompare(b.time));
+    }
+    showToast(`✓ Блок "${name}" добавлен в выбранные дни`);
+  }
+
+  closeOv('modal-cp');save();renderDash();
+}
+
+// ── PERM TASKS ──
+let _permDays=[0,1,2,3,4,5,6];
+function setPermDays(days){_permDays=[...days];renderPermDays();}
+function renderPermDays(){
+  const WD2=['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'];
+  document.getElementById('pt-days').innerHTML=WD2.map((n,i)=>`<div class="paf-d ${_permDays.includes(i)?'on':''}" onclick="togPermDay(${i})">${n}</div>`).join('');
+}
+function togPermDay(i){_permDays.includes(i)?_permDays=_permDays.filter(d=>d!==i):_permDays.push(i);renderPermDays();}
+function openAddPermTask(){
+  document.getElementById('pt-nm').value='';
+  _permDays=[0,1,2,3,4,5,6];
+  renderPermDays();
+  openOv('modal-perm-task');
+  setTimeout(()=>document.getElementById('pt-nm').focus(),100);
+}
+function savePermTask(){
+  const name=document.getElementById('pt-nm').value.trim();
+  if(!name)return;
+  const blockName=document.getElementById('pt-block').value;
+  if(!G.permTasks)G.permTasks=[];
+  const newTask={id:uid(),name,blockName,days:[..._permDays]};
+  G.permTasks.push(newTask);
+  Object.keys(G.days).forEach(dk=>{
+    const d=new Date(dk.replace(/-/g,'/'));
+    const dow=d.getDay();
+    if(!_permDays.includes(dow))return;
+    const day=G.days[dk];
+    const cp=day.cps&&day.cps.find(c=>c.name===blockName);
+    if(!cp)return;
+    if(cp.tasks.some(t=>t.name===name))return;
+    cp.tasks.push({id:uid(),name,xp:0,done:false,perm:true});
+  });
+  save();closeOv('modal-perm-task');renderTimeline();
+  showToast('✓ Задача добавлена');
+}
+
+const WD_SHORT=['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'];
+function renderPermTaskList(){
+  const wrap=document.getElementById('pt-list-wrap');
+  const list=document.getElementById('pt-list');
+  const tasks=G.permTasks||[];
+  if(!tasks.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  list.innerHTML=tasks.map(pt=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;margin-bottom:4px;background:var(--bg2);border:1px solid var(--b1)">
+      <div>
+        <div style="font-size:11px;color:var(--t1)">${pt.name}</div>
+        <div style="font-size:9px;color:var(--t3);margin-top:1px">${pt.blockName} · ${pt.days.length===7?'каждый день':pt.days.map(d=>WD_SHORT[d]).join(' ')}</div>
+      </div>
+      <button onclick="delPermTask('${pt.id}')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:12px;padding:2px 6px;transition:color .2s" onmouseover="this.style.color='#e05a5a'" onmouseout="this.style.color='var(--t3)'">✕</button>
+    </div>`).join('');
+}
+
+function delPermTask(id){
+  if(!G.permTasks)return;
+  const pt=G.permTasks.find(t=>t.id===id);
+  if(!pt)return;
+  // удаляем из всех дней
+  Object.values(G.days).forEach(day=>{
+    day.cps.forEach(cp=>{cp.tasks=cp.tasks.filter(t=>!(t.name===pt.name&&t.perm));});
+  });
+  G.permTasks=G.permTasks.filter(t=>t.id!==id);
+  save();renderPermTaskList();renderTimeline();
+  showToast('✓ Задача удалена');
+}
+
+// ── MODALS ──
+function openOv(id){
+  if(id==='modal-cp'){_cpDays=[];renderCpDays();}
+  if(id==='modal-perm-task'){renderPermTaskList();}
+  document.getElementById(id).classList.add('open');
+}
+function closeOv(id){document.getElementById(id).classList.remove('open');}
+
+// ── WORKOUT ──
+function renderWorkout(){
+  const ww=document.getElementById('wp-week');ww.innerHTML='';
+  const lbl={1:'ПН',2:'ВТ',3:'СР',4:'ЧТ',5:'ПТ',6:'СБ',0:'ВС'};
+  [1,2,3,4,5,6,0].forEach(d=>{
+    const sch=WORKOUT_SCHEDULE[d];
+    const div=document.createElement('div');
+    div.className='wp-daydot'+(sch?.type==='full'?' has-train':sch?.type==='light'?' has-light':' rest');
+    div.innerHTML=`<div class="wp-ddn">${lbl[d]}</div><div class="wp-ddi" style="display:flex;align-items:center;justify-content:center;margin-top:4px">${sch?.type==='full'?resolveIcon('__lift__',13):sch?.type==='light'?resolveIcon('__light__',13):sch?.type==='weekend'?(d===6?resolveIcon('__walk__',13):resolveIcon('__yoga__',13)):resolveIcon('__rest__',13)}</div>`;
+    ww.appendChild(div);
+  });
+  document.getElementById('wp-grid').innerHTML=[
+    ...WP_MORNING.map(w=>({...w,type:'morning'})),
+    ...WP_FULL.map(w=>({...w,type:'full'})),
+    ...WP_LIGHT.map(w=>({...w,type:'light'})),
+    ...WP_WEEKEND.map(w=>({...w,type:'weekend'}))
+  ].map(w=>`
+    <div class="wp-card ${w.type==='light'||w.type==='weekend'||w.type==='morning'?'light-card':''}">
+      <div class="wp-card-head"><div><div class="wp-day">${w.day}</div><div class="wp-foc">${w.foc}</div></div><span class="wp-badge ${w.type==='full'?'full':'light'}">${w.type==='full'?'ПОЛНАЯ':w.type==='light'?'РАЗМИНКА':w.type==='morning'?'УТРО':'ВЫХОДНОЙ'}</span></div>
+      <div class="wp-eq">${w.eq}</div><div class="wp-dur">${w.dur}</div>
+      ${w.ex.map((e,i)=>`<div class="wp-ex"><div class="wp-en">${i+1}</div><div class="wp-ei">${resolveIcon(e.i,14)}</div><div class="wp-ename">${e.n}</div><div class="wp-es">${e.s}</div></div>`).join('')}
+      <div class="wp-rest">${w.rest}</div>
+    </div>`).join('');
+}
+
+// ── SHOP ──
+function renderShop(){
+  document.getElementById('sh-bal').textContent=G.totalXP;
+  const cats=[...new Set(G.rewards.map(r=>r.cat))];
+  document.getElementById('sh-body').innerHTML=cats.map(cat=>`
+    <div class="sh-cat">${cat}</div>
+    <div class="sh-grid">${G.rewards.filter(r=>r.cat===cat).map(r=>`
+      <div class="sh-card ${r.bought?'bgt':''} ${!r.bought&&G.totalXP>=r.xp?'can':''}" onclick="openBuyConfirm(${r.id})">
+        ${r.custom?`<button class="sdl" onclick="event.stopPropagation();delRw(${r.id})">✕</button>`:''}
+        ${r.bought?`<div class="sbg">Куплено</div>`:''}
+        <div class="si">${resolveIcon(r.icon,24)}</div><div class="sn">${r.name}</div><div class="sd">${r.desc}</div>
+        <div class="sc2">${r.xp} XP</div>
+        ${!r.bought&&G.totalXP<r.xp?`<div class="slk">Не хватает ${r.xp-G.totalXP} XP</div>`:''}
+      </div>`).join('')}
+    </div>`).join('');
+}
+function openBuyConfirm(id){
+  const r=G.rewards.find(x=>x.id===id);if(!r||r.bought)return;
+  if(G.totalXP<r.xp){showToast('Недостаточно XP');return;}
+  _buyId=id;
+  document.getElementById('bc-ico').innerHTML=resolveIcon(r.icon,28);
+  document.getElementById('bc-nm').textContent=r.name;
+  document.getElementById('bc-xp').textContent=r.xp+' XP';
+  document.getElementById('buy-confirm').classList.add('open');
+}
+function closeBuyConfirm(){document.getElementById('buy-confirm').classList.remove('open');_buyId=null;}
+function confirmBuy(){
+  const r=G.rewards.find(x=>x.id===_buyId);if(!r)return;
+  G.totalXP-=r.xp;r.bought=true;closeBuyConfirm();save();renderShop();renderHeader();showToast('✦ '+r.name);
+}
+function delRw(id){G.rewards=G.rewards.filter(r=>r.id!==id);save();renderShop();}
+function saveReward(){
+  const nm=document.getElementById('rw-nm').value.trim();if(!nm)return;
+  G.rewards.push({id:uid(),icon:document.getElementById('rw-ic').value||'★',name:nm,desc:document.getElementById('rw-ds').value,xp:+document.getElementById('rw-xp').value||100,cat:document.getElementById('rw-cat').value,bought:false,custom:true});
+  document.getElementById('rw-nm').value='';document.getElementById('rw-ds').value='';
+  closeOv('modal-rw');save();renderShop();
+}
+
+// ── FINANCE ──
+const FMS={apt:[500000,1000000,3000000,5000000,10000000,15000000],cry:[10000,50000,100000,250000,500000,1000000]};
+function renderFin(){
+  [['apt','₽','fa'],['cry','$','fc']].forEach(([k,sym,p])=>{
+    const gg=G.fin[k],pct=Math.min(100,(gg.cur/gg.tgt)*100);
+    document.getElementById(p+'-pct').textContent=pct.toFixed(2)+'%';
+    document.getElementById(p+'-bar').style.width=pct+'%';
+    document.getElementById(p+'-cur').textContent=sym==='₽'?gg.cur.toLocaleString('ru-RU'):'$ '+gg.cur.toLocaleString('en-US');
+    document.getElementById(p+'-ms').innerHTML=FMS[k].map(m=>`<div class="fg-m ${gg.cur>=m?'hit':''}">${m>=1000000?(m/1000000)+'M':(m/1000)+'K'}</div>`).join('');
+    const hist=document.getElementById(p+'-hist');
+    const rec=[...gg.hist].reverse().slice(0,8);
+    hist.innerHTML=rec.length?`<div class="fh-l">ИСТОРИЯ</div>${rec.map(h=>`<div class="fh-r"><span class="fh-d">${h.date}</span><span class="fh-v ${h.a>0?'p':'n'}">${h.a>0?'+':''}${sym==='₽'?Math.abs(h.a).toLocaleString('ru-RU')+' ₽':'$ '+Math.abs(h.a).toLocaleString('en-US')}</span></div>`).join('')}`:'';
+  });
+}
+function finOp(k,sign){
+  const p=k==='apt'?'fa':'fc',sym=k==='apt'?'₽':'$';
+  const v=parseFloat(document.getElementById(p+'-i').value);if(!v||v<=0)return;
+  G.fin[k].cur=Math.max(0,G.fin[k].cur+sign*v);
+  G.fin[k].hist.push({date:new Date().toLocaleDateString('ru-RU'),a:sign*v});
+  document.getElementById(p+'-i').value='';
+  save();renderFin();renderFinMini();
+  showToast((sign>0?'+ ':'− ')+(sym==='₽'?v.toLocaleString('ru-RU')+' ₽':'$ '+v.toLocaleString('en-US')));
+}
+
+// ── XP ──
+function gainXP(a){
+  G.xp+=a;G.totalXP+=a;
+  while(G.xp>=G.xpNext){G.xp-=G.xpNext;G.level++;G.xpNext=Math.floor(G.xpNext*1.6);showToast('✦ Уровень → '+G.level);}
+  const f=document.createElement('div');f.className='xpf';f.textContent='+'+a+' xp';
+  f.style.left=(25+Math.random()*40)+'vw';f.style.top='35vh';
+  document.body.appendChild(f);setTimeout(()=>f.remove(),1400);
+  renderHeader();save();
+}
+
+const ACHIEVEMENTS=[
+  {id:'streak3',icon:'◆',name:'На старте',desc:'3 дня подряд',check:()=>G.streak>=3},
+  {id:'streak7',icon:'__light__',name:'Неделя силы',desc:'7 дней подряд',check:()=>G.streak>=7},
+  {id:'streak14',icon:'◆',name:'Две недели',desc:'14 дней подряд',check:()=>G.streak>=14},
+  {id:'streak30',icon:'◈',name:'Месяц воина',desc:'30 дней подряд',check:()=>G.streak>=30},
+  {id:'xp500',icon:'◈',name:'Первые 500',desc:'Набрать 500 XP',check:()=>G.totalXP>=500},
+  {id:'xp2000',icon:'◆',name:'2000 XP',desc:'Набрать 2000 XP',check:()=>G.totalXP>=2000},
+  {id:'xp5000',icon:'◈',name:'5000 XP',desc:'Набрать 5000 XP',check:()=>G.totalXP>=5000},
+  {id:'lv5',icon:'★',name:'Уровень 5',desc:'Достичь 5 уровня',check:()=>G.level>=5},
+  {id:'lv10',icon:'★',name:'Уровень 10',desc:'Достичь 10 уровня',check:()=>G.level>=10},
+];
+function checkAchievements(){
+  if(!G.achievements)G.achievements=[];
+  ACHIEVEMENTS.forEach(a=>{
+    if(!G.achievements.includes(a.id)&&a.check()){
+      G.achievements.push(a.id);
+      setTimeout(()=>showToast('✦ '+a.name+' — '+a.desc),500);
+    }
+  });
+}
+
+function renderWeekDash(){
+  const mon=startOfWeek(new Date());
+  const days=[];
+  for(let i=0;i<7;i++){
+    const d=addDays(mon,i),dk=dkey(d),day=G.days[dk];
+    const isToday=dk===dkey(new Date());
+    const expectedCps=defCps(d.getDay());
+    const total=day?day.cps.length:expectedCps.length;
+    const done=day?day.cps.filter(c=>c.arrived).length:0;
+    const pct=total?Math.round(done/total*100):0;
+    const wd=['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'][d.getDay()];
+    days.push({wd,done,total,pct,isToday,isFuture:d>new Date()});
+  }
+  const totalDone=days.reduce((a,d)=>a+d.done,0);
+  const totalAll=days.reduce((a,d)=>a+d.total,0);
+  const weekPct=totalAll?Math.round(totalDone/totalAll*100):0;
+  const el=document.getElementById('week-dash');
+  if(!el)return;
+  el.innerHTML=`
+    <div style="display:flex;gap:3px;margin-bottom:8px">
+      ${days.map(d=>`
+        <div style="flex:1;text-align:center">
+          <div style="font-size:8px;color:${d.isToday?'var(--gold)':'var(--t3)'};margin-bottom:3px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;font-weight:${d.isToday?500:400}">${d.wd}</div>
+          <div style="height:32px;background:var(--bg3);position:relative;overflow:hidden">
+            <div style="position:absolute;bottom:0;width:100%;height:${d.isFuture?0:d.pct}%;background:${d.pct===100?'var(--gold)':d.pct>0?'rgba(201,166,107,.3)':'transparent'};transition:height .4s ease"></div>
+          </div>
+          <div style="font-size:8px;color:var(--t3);margin-top:2px">${d.isFuture?'':d.total?d.done+'/'+d.total:'—'}</div>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--bg2);border:1px solid var(--b1)">
+      <div style="font-size:9px;color:var(--t3);letter-spacing:2px;text-transform:uppercase">Прогресс недели</div>
+      <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:${weekPct>=70?'var(--gold)':weekPct>=40?'rgba(201,166,107,.5)':'var(--red3)'}">${weekPct}%</div>
+    </div>`;
+}
+
+function renderAchievements(){}
+
+// ── TOAST ──
+let _tt;
+function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2600);}
+
+window.addEventListener('load',()=>{
+  initMobile();
+  // Auth handles renderDash after sign-in
+  // Fallback if scripts fail after 6s
+  setTimeout(()=>{
+    if(!_fbReady&&!_currentUser){
+      startOfflineMode();
+    }
+  },6000);
+});
+
+
+
+// ── TASK HELPERS ──
+function handleTaskTap(el, e){
+  if(el.classList.contains('swipe-open'))return;
+  if(el._suppressNextClick)return;
+  // Ignore clicks originating from delete buttons
+  const t=e.target;
+  if(t.classList.contains('ct-del')||t.classList.contains('ct-del-perm')||t.classList.contains('ct-swipe-del')||t.classList.contains('ct-mob-del')||t.closest('.ct-swipe-del')||t.closest('.ct-mob-del'))return;
+  const dk=el.dataset.dk, cpId=+el.dataset.cpid, tid=+el.dataset.tid;
+  haptic('light');
+  toggleCpTask(dk,cpId,tid);
+}
+
+function activateAddRow(cpId, dk){
+  const row=document.getElementById('add-row-'+cpId);
+  if(!row)return;
+  row.classList.add('editing');
+  const inp=document.getElementById('cti'+cpId);
+  if(inp){inp.style.display='block';inp.focus();}
+}
+
+function deactivateAddRow(cpId){
+  setTimeout(()=>{
+    const row=document.getElementById('add-row-'+cpId);
+    if(row&&!document.getElementById('cti'+cpId)?.value){
+      row.classList.remove('editing');
+    }
+  },150);
+}
+
+function handleArriveTap(btn, dk, cpId){
+  if(btn.disabled)return;
+  btn.disabled=true;
+  haptic('medium');
+  btn.style.transition='background 120ms ease,color 120ms ease';
+  btn.style.background='linear-gradient(150deg,#92D17C 0%,#A3D977 55%,#B8E08A 100%)';
+  btn.style.color='#1B3212';
+  btn.style.boxShadow='none';
+  btn.innerHTML='<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  arrive(dk,cpId);
+}
+
+// Swipe-to-delete init
+function initAllSwipes(dk){
+  document.querySelectorAll('.ct').forEach(row=>{
+    if(row._swipeInited)return;
+    row._swipeInited=true;
+    let sx=0,dx=0;
+    row.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;dx=0;},{passive:true});
+    row.addEventListener('touchmove',e=>{
+      dx=e.touches[0].clientX-sx;
+      if(dx>0){row.style.transform='';return;}
+      const c=Math.max(dx,-72);
+      row.style.transform=`translateX(${c}px)`;
+      if(dx<-60&&!row._hapticDone){haptic('light');row._hapticDone=true;}
+    },{passive:true});
+    row.addEventListener('touchend',(ev)=>{
+      row._hapticDone=false;
+      if(dx<-60){
+        row.classList.add('swipe-open');
+        row.style.transform='translateX(-72px)';
+        // Prevent the subsequent click from toggling the task
+        row._suppressNextClick=true;
+        setTimeout(()=>{row._suppressNextClick=false;},300);
+      } else {
+        row.classList.remove('swipe-open');
+        row.style.transform='translateX(0)';
+      }
+      dx=0;
+    });
+  });
+}
+
+// Pull-to-refresh
+function initPullToRefresh(){
+  if(!isMobile())return;
+  const ind=document.createElement('div');
+  ind.className='ptr-indicator';ind.textContent='◆';ind.id='ptr-ind';
+  document.body.appendChild(ind);
+  let sy=0,pulling=false;
+  document.addEventListener('touchstart',e=>{if(window.scrollY===0)sy=e.touches[0].clientY;},{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(sy===0)return;
+    const dy=e.touches[0].clientY-sy;
+    if(dy>20&&window.scrollY===0){pulling=true;ind.classList.add('visible');}
+  },{passive:true});
+  document.addEventListener('touchend',()=>{
+    if(!pulling){sy=0;return;}
+    pulling=false;sy=0;
+    haptic('medium');
+    ind.classList.add('spinning');
+    if(_fbRef)_fbRef.once('value').then(snap=>{const r=snap.val();if(r&&(r.lastSaved||0)>(G.lastSaved||0)){G=r;renderHeader();renderDash();}ind.classList.remove('spinning','visible');});
+    else setTimeout(()=>ind.classList.remove('spinning','visible'),800);
+  });
+}
+
+// ── MOBILE LOGIC ──
+const isMobile = () => window.innerWidth <= 768;
+
+function initMobile() {
+  if (!isMobile()) return;
+  document.getElementById('mobile-tab-bar').style.display = 'flex';
+  document.getElementById('fab-mobile').style.display = 'flex';
+  initOfflineBanner();
+  initSwipeToClose();
+  initPullToRefresh();
+}
+
+function handleMobileTabClick(el){
+  var page=el.getAttribute('data-page');
+  if(!page)return;
+  document.querySelectorAll('.mobile-tab-item').forEach(function(t){t.classList.remove('on');});
+  el.classList.add('on');
+  pg(page);
+}
+function setMobileTab(el){
+  document.querySelectorAll('.mobile-tab-item').forEach(function(t){t.classList.remove('on');});
+  el.classList.add('on');
+}
+
+function openFabSheet() {
+  if (navigator.vibrate) navigator.vibrate(25);
+  openOv('fab-sheet');
+}
+
+// Offline banner
+function initOfflineBanner() {
+  const banner = document.getElementById('offline-banner');
+  window.addEventListener('online', () => banner.classList.remove('show'));
+  window.addEventListener('offline', () => banner.classList.add('show'));
+  if (!navigator.onLine) banner.classList.add('show');
+}
+
+// Swipe bottom sheets закрытие
+function initSwipeToClose() {
+  document.querySelectorAll('.ov').forEach(ov => {
+    ov.addEventListener('click', e => { if (e.target === ov) { const id = ov.id; closeOv(id); }});
+  });
+}
+
+// Done-карточки collapsed — toggle по тапу (мобиль)
+function toggleDoneCard(el) {
+  if (!isMobile()) return;
+  const item = el.closest('.cp-item');
+  if (item && item.classList.contains('done')) {
+    item.classList.toggle('expanded');
+  }
+}
+
+// Автоскролл к активному блоку
+function scrollToActiveBlock() {
+  if (!isMobile()) return;
+  setTimeout(() => {
+    const active = document.querySelector('.cp-item.active');
+    if (!active) return;
+    const offset = active.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+  }, 300);
+}
+
+// Haptic
+function haptic(type) {
+  if (!navigator.vibrate) return;
+  const p = { light:[10], medium:[25], heavy:[40], success:[10,50,10] };
+  navigator.vibrate(p[type] || [10]);
+}
+
+// Completion Moment
+let _dayXpStart = 0;
+function checkCompletionMoment(dk) {
+  if (!isMobile()) return;
+  const day = G.days[dk];
+  if (!day) return;
+  const total = day.cps.length;
+  const done = day.cps.filter(c => c.arrived).length;
+  if (done < total) return;
+  // Все блоки закрыты
+  const xpToday = day.cps.reduce((s, c) => s + (c.arrived ? c.xp : 0), 0);
+  setTimeout(() => showCompletionMoment(done, total, xpToday, G.streak), 400);
+}
+
+function showCompletionMoment(done, total, xpToday, streak) {
+  const el = document.getElementById('completion-moment');
+  if (!el) return;
+
+  // Заполняем
+  const streakTxt = streak === 1 ? 'Первый шаг сделан.' : `${streak} дней без остановки`;
+  document.getElementById('cm-streak-txt').textContent = streakTxt;
+
+  const warrior = document.getElementById('cm-warrior');
+  if (streak > 1 && streak % 7 === 0) {
+    warrior.textContent = '✦✦✦  НЕДЕЛЯ ВОИНА  ✦✦✦';
+  } else {
+    warrior.textContent = '';
+  }
+
+  document.getElementById('cm-blocks').textContent = `${done} из ${total}`;
+  document.getElementById('cm-xp-day').textContent = `+${xpToday}`;
+  document.getElementById('cm-streak-val').textContent = `${streak}`;
+
+  el.classList.add('open');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      el.classList.add('visible');
+    });
+  });
+
+  // Haptic sequence
+  haptic('heavy');
+  setTimeout(() => haptic('light'), 500);
+  setTimeout(() => haptic('medium'), 800);
+  setTimeout(() => haptic('success'), 1600);
+}
+
+function closeCompletionMoment() {
+  const el = document.getElementById('completion-moment');
+  el.classList.remove('visible');
+  setTimeout(() => el.classList.remove('open'), 400);
+}
+
+// Next block hint
+function getNextBlockHint(dk, currentCpId) {
+  const day = G.days[dk];
+  if (!day) return '';
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const upcoming = day.cps.filter(c => !c.arrived && c.id !== currentCpId);
+  if (!upcoming.length) return '';
+  const next = upcoming[0];
+  if (!next.time) return '';
+  const [h, m] = next.time.split(':').map(Number);
+  const nextMin = h * 60 + m;
+  const diff = nextMin - nowMin;
+  if (diff <= 0 || diff > 60) return '';
+  return `→ ${next.name} через ${diff} мин`;
+}
+
+// Инициализация при загрузке
+window.addEventListener('resize', () => {
+  if (isMobile()) {
+    document.getElementById('mobile-tab-bar').style.display = 'flex';
+    document.getElementById('fab-mobile').style.display = 'flex';
+  } else {
+    document.getElementById('mobile-tab-bar').style.display = 'none';
+    document.getElementById('fab-mobile').style.display = 'none';
+  }
+});
+
+// ── WELCOME ──
+let _wSlide=0;
+const _wSlides=[
+  {icon:'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',title:'Это твой день',sub:'Каждое утро — чистый лист.\nТы решаешь, как его заполнить.'},
+  {icon:'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9M15 21V9"/></svg>',title:'Отмечай блоки',sub:'День разбит на блоки: утро, работа, вечер.\nЗакрыл блок — продвинулся вперёд.'},
+  {icon:'<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',title:'Копи XP',sub:'Каждое действие даёт опыт.\nСерии умножают рост. Награждай себя.'},
+];
+function renderWelcomeSlide(){
+  const s=_wSlides[_wSlide];
+  document.getElementById('ws-icon').innerHTML=typeof resolveIcon==='function'?resolveIcon(s.icon,52):s.icon;
+  document.getElementById('ws-title').textContent=s.title;
+  document.getElementById('ws-sub').textContent=s.sub;
+  document.querySelectorAll('.ws-dot').forEach((d,i)=>d.classList.toggle('on',i===_wSlide));
+  const btn=document.getElementById('ws-btn');
+  if(_wSlide===_wSlides.length-1){
+    btn.textContent='Начать →';
+    btn.style.background='var(--gold)';
+    btn.style.color='#111';
+    btn.style.border='none';
+    btn.style.boxShadow='0 0 20px rgba(255,184,0,0.25)';
+  } else {
+    btn.textContent='Далее →';
+    btn.style.background='transparent';
+    btn.style.color='var(--t1)';
+    btn.style.border='1px solid var(--b2)';
+    btn.style.boxShadow='none';
+  }
+}
+function welcomeNext(){
+  if(_wSlide<_wSlides.length-1){
+    _wSlide++;
+    const content=document.getElementById('ws-content');
+    content.style.opacity='0';content.style.transform='translateY(8px)';
+    setTimeout(()=>{
+      renderWelcomeSlide();
+      content.style.transition='opacity .25s ease,transform .25s ease';
+      content.style.opacity='1';content.style.transform='translateY(0)';
+    },180);
+  } else {
+    localStorage.setItem('lifeos_welcomed','1');
+    const ws=document.getElementById('welcome-screen');
+    ws.style.opacity='0';
+    setTimeout(()=>ws.classList.remove('open'),300);
+  }
+}
+
+</script>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+  <div class="ws-logo">LIFE OS</div>
+  <div id="ws-content">
+    <div id="ws-icon" style="display:flex;justify-content:center"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></div>
+    <div id="ws-title">Это твой день</div>
+    <div id="ws-sub">Каждое утро — чистый лист.
+Ты решаешь, как его заполнить.</div>
+    <div class="ws-dots">
+      <div class="ws-dot on"></div>
+      <div class="ws-dot"></div>
+      <div class="ws-dot"></div>
+    </div>
+    <button id="ws-btn" onclick="welcomeNext()">Далее →</button>
+  </div>
+  <button class="ws-skip" onclick="localStorage.setItem('lifeos_welcomed','1');this.closest('#welcome-screen').style.opacity='0';setTimeout(()=>this.closest('#welcome-screen').classList.remove('open'),300)">Пропустить</button>
+</div>
+
+</body>
+
+</html>
