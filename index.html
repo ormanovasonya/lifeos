@@ -1752,6 +1752,38 @@ body::before{
     margin-left:auto;
   }
   .ct-mob-del:active{color:#e05a7a;background:rgba(159,18,57,0.1);}
+  .ct-del-popup{
+    position:fixed;inset:0;z-index:8000;
+    display:flex;align-items:flex-end;justify-content:center;
+    background:rgba(0,0,0,0.6);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  .ct-del-popup-box{
+    background:#1C2026;
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:16px 16px 0 0;
+    width:100%;max-width:480px;
+    padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));
+    display:flex;flex-direction:column;gap:8px;
+  }
+  .ct-del-popup-title{
+    font-size:11px;color:#505050;letter-spacing:1.5px;
+    text-transform:uppercase;text-align:center;
+    padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.06);
+    margin-bottom:4px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .ct-del-popup-btn{
+    width:100%;padding:14px;border:none;border-radius:10px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;
+    letter-spacing:0.5px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:opacity .15s;
+  }
+  .ct-del-popup-btn:active{opacity:0.7;}
+  .ct-del-popup-btn.today{background:rgba(255,255,255,0.06);color:#C0C0C0;}
+  .ct-del-popup-btn.forever{background:rgba(159,18,57,0.12);color:#e05a7a;border:1px solid rgba(159,18,57,0.25);}
+  .ct-del-popup-btn.cancel{background:none;color:#505050;margin-top:4px;}
 
 </style>
 </head>
@@ -3071,10 +3103,10 @@ function renderTimeline(){
     item.className='cp-item'+(isDone?' done':isAct?' active':'');
     // tasks rows
     const tasksHtml=cp.tasks.map(t=>{
-      const swipeDel=mob?`<div class="ct-swipe-del" onclick="event.stopImmediatePropagation();event.stopPropagation();delCpTask('${dk}',${cp.id},${t.id})">✕</div>`:'';
+      const swipeDel=mob?`<div class="ct-swipe-del" onclick="event.stopImmediatePropagation();event.stopPropagation();const p=document.getElementById('ct-del-popup');if(p)p.remove();delCpTask('${dk}',${cp.id},${t.id})">✕</div>`:'';
       const permDel=!t.permanent&&!mob?`<span class="ct-del ct-del-perm" onclick="event.stopImmediatePropagation();event.stopPropagation();delCpTaskForever('${dk}',${cp.id},${t.id})" title="Удалить навсегда">✕</span>`:'';
       const delBtn=!mob?`<span class="ct-del" onclick="event.stopImmediatePropagation();event.stopPropagation();delCpTask('${dk}',${cp.id},${t.id})" title="Удалить сегодня">✕</span>`:'';
-      const mobDelBtn=mob?`<button class="ct-mob-del" onclick="event.stopImmediatePropagation();event.stopPropagation();delCpTask('${dk}',${cp.id},${t.id})" title="Удалить">✕</button>`:'';
+      const mobDelBtn=mob?`<button class="ct-mob-del" onclick="event.stopImmediatePropagation();event.stopPropagation();showMobTaskDelMenu('${dk}',${cp.id},${t.id},'${t.name.replace(/'/g,'\\&apos;')}')" title="Удалить">✕</button>`:'';
       return `<div class="ct ${t.done?'done':''}" data-tid="${t.id}" data-cpid="${cp.id}" data-dk="${dk}" onclick="handleTaskTap(this,event)">
         <div class="ct-cb">${t.done?'✓':''}</div>
         <div class="ct-nm">${t.name}</div>
@@ -3402,8 +3434,24 @@ function delCpTask(dk,cpId,tid){
   save();
   renderTimeline();
 }
+function showMobTaskDelMenu(dk,cpId,tid,tName){
+  // Remove existing popup if any
+  const existing=document.getElementById('ct-del-popup');
+  if(existing)existing.remove();
+  const popup=document.createElement('div');
+  popup.id='ct-del-popup';
+  popup.className='ct-del-popup';
+  popup.innerHTML=`<div class="ct-del-popup-box">
+    <div class="ct-del-popup-title">${tName}</div>
+    <button class="ct-del-popup-btn today" onclick="document.getElementById('ct-del-popup').remove();delCpTask('${dk}',${cpId},${tid})">Удалить только сегодня</button>
+    <button class="ct-del-popup-btn forever" onclick="document.getElementById('ct-del-popup').remove();delCpTaskForever('${dk}',${cpId},${tid})">Удалить из всех дней</button>
+    <button class="ct-del-popup-btn cancel" onclick="document.getElementById('ct-del-popup').remove()">Отмена</button>
+  </div>`;
+  popup.addEventListener('click',e=>{if(e.target===popup)popup.remove();});
+  document.body.appendChild(popup);
+}
+
 function delCpTaskForever(dk,cpId,tid){
-  if(!confirm('Удалить задачу навсегда из всех дней?'))return;
   const cp=G.days[dk]?.cps.find(c=>c.id===cpId);
   const tName=cp?.tasks?.find(t=>t.id===tid)?.name||'';
   if(!tName){showToast('Задача не найдена');return;}
