@@ -2417,7 +2417,8 @@ loadScripts([
         const _kl3=document.getElementById('key-loading');if(_kl3)_kl3.classList.add('show');
         deriveCryptoKey(user.email||user.uid,_savedPin).then(key=>{if(_kl3)_kl3.classList.remove('show');_cryptoKey=key;initDataForUser(user.uid);});
       } else {
-        _showPinSetupForEmail(user.email||user.uid);
+        // Нет PIN — входим без шифрования, данные синхронизируются через Firebase
+        initDataForUser(user.uid);
       }
     } else {
       _currentUser=null;
