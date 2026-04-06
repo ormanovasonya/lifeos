@@ -2394,13 +2394,21 @@ loadScripts([
     hideAppLoading();
     if(user){
       _currentUser=user;
-      if(_pendingEmailVerification) return;
+      // Если регистрация в процессе — только показываем verify экран, ничего больше
+      if(_pendingEmailVerification){
+        const as=document.getElementById('auth-screen');
+        if(as)as.style.display='none';
+        _showEmailVerifyScreen(user);
+        return;
+      }
+      // Email не подтверждён — показываем verify экран, не открываем дашборд
       if(!user.emailVerified){
         const as=document.getElementById('auth-screen');
         if(as)as.style.display='none';
         _showEmailVerifyScreen(user);
         return;
       }
+      // Email подтверждён — идём дальше
       document.getElementById('auth-screen')?.remove();
       document.getElementById('email-verify-screen')?.remove();
       document.getElementById('auth-user-email')&&(document.getElementById('auth-user-email').textContent=user.email||'');
@@ -2461,7 +2469,6 @@ document.addEventListener('touchmove', function(e){
 }, {passive:false});
 
 let _authMode='signin';
-let _pendingEmailVerification=false;
 function switchAuthTab(mode){
   _authMode=mode;
   document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('on',(mode==='signin'?i===0:i===1)));
@@ -2506,22 +2513,13 @@ function doAuth(){
     if(pass.length<6){errEl.style.color='#e05a7a';errEl.textContent='Слабый пароль (мин. 6 символов)';return;}
     const btn=document.getElementById('auth-submit');
     btn.disabled=true;btn.textContent='...';
-    _pendingEmailVerification=true;
     firebase.auth().createUserWithEmailAndPassword(email,pass)
       .then(cred=>{
-        cred.user.sendEmailVerification();
+        cred.user.sendEmailVerification().catch(()=>{});
         btn.disabled=false;btn.textContent='Создать аккаунт';
-        errEl.style.color='#A3D977';
-        errEl.textContent='Письмо подтверждения отправлено на '+email;
-        setTimeout(()=>{
-          _pendingEmailVerification=false;
-          const as=document.getElementById('auth-screen');
-          if(as)as.style.display='none';
-          _showEmailVerifyScreen(cred.user);
-        },2500);
+        // onAuthStateChanged сам покажет verify экран
       })
       .catch(e=>{
-        _pendingEmailVerification=false;
         btn.disabled=false;btn.textContent='Создать аккаунт';
         const msgs={'auth/email-already-in-use':'Email уже занят','auth/weak-password':'Слабый пароль (мин. 6 символов)','auth/invalid-email':'Некорректный email'};
         errEl.style.color='#e05a7a';
@@ -2590,7 +2588,7 @@ function showPinFallback(){
       <div class="pin-grid">
         ${[1,2,3,4,5,6,7,8,9,'',0,'⌫'].map(k=>`<button class="pin-key ${k===''?'pin-key-empty':''}" ${k===''?'disabled':''} onclick="pinKey('${k}')">${k}</button>`).join('')}
       </div>
-      <button class="auth-pin-btn" style="margin-top:12px" onclick="document.getElementById('pin-screen').style.display='none'">← Назад</button>
+      <button class="auth-pin-btn" style="margin-top:12px" onclick="document.getElementById('pin-screen').style.display='none';const as=document.getElementById('auth-screen');if(as)as.style.display='flex';">← Назад</button>
     </div>`;
     document.body.appendChild(el);
   } else {
