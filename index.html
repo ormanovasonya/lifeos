@@ -2199,7 +2199,7 @@ transition:opacity .15s;
 
 <!-- COMPLETION MOMENT -->
 
-<div id="completion-moment">
+<div id="completion-moment" style="display:none">
   <div class="cm-star">✦</div>
   <div class="cm-title">День закрыт.</div>
   <div class="cm-streak-txt" id="cm-streak-txt"></div>
@@ -2384,10 +2384,7 @@ function hideAppLoading(){
 function startOfflineMode(){
   _fbReady=false;
   hideAppLoading();
-  // Don't start offline mode if user is authenticated or auth-screen is visible
   if(_currentUser){return;}
-  const as=document.getElementById('auth-screen');
-  if(as&&as.style.display!=='none'){return;}
   G=load()||defaultG();
   ensureDay(new Date());
   renderHeader();renderDash();initMobile();scrollToActiveBlock();
@@ -2450,30 +2447,12 @@ loadScripts([
     hideAppLoading();
     if(user){
       _currentUser=user;
-      // Если регистрация в процессе — только показываем verify экран, ничего больше
-      if(_pendingEmailVerification){
-        const as=document.getElementById('auth-screen');
-        if(as)as.style.display='none';
-        _showEmailVerifyScreen(user);
-        return;
-      }
-      // Email не подтверждён — показываем verify экран, не открываем дашборд
-      if(!user.emailVerified){
-        const as=document.getElementById('auth-screen');
-        if(as)as.style.display='none';
-        _showEmailVerifyScreen(user);
-        return;
-      }
-      // Email подтверждён — идём дальше
       document.getElementById('auth-screen')?.remove();
-      document.getElementById('email-verify-screen')?.remove();
-      document.getElementById('auth-user-email')&&(document.getElementById('auth-user-email').textContent=user.email||'');
       const _savedPin=localStorage.getItem('lifeos_pin_hash');
       if(_savedPin){
         const _kl3=document.getElementById('key-loading');if(_kl3)_kl3.classList.add('show');
         _keyDerivationInProgress=true;deriveCryptoKey(user.email||user.uid,_savedPin).then(key=>{_keyDerivationInProgress=false;if(_kl3)_kl3.classList.remove('show');_cryptoKey=key;initDataForUser(user.uid);});
       } else {
-        // Нет PIN — входим без шифрования, данные синхронизируются через Firebase
         initDataForUser(user.uid);
       }
     } else {
@@ -2590,7 +2569,7 @@ function showPinFallback(){
   _pinInput='';updatePinDots();
 }
 let _pinInput='',_pinFirst='';
-function pinKey(k){
+async function pinKey(k){
   if(k==='⌫'){_pinInput=_pinInput.slice(0,-1);}
   else if(_pinInput.length<6){_pinInput+=k;}
   updatePinDots();
