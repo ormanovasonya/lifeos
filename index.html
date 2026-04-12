@@ -11,6 +11,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#111318">
 <title>LIFE OS</title>
+<link rel="manifest" id="pwa-manifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-touch-fullscreen" content="yes">
+
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 20 20'%3E%3Cpath d='M10 1 L10 19 M3 6 L10 1 L17 6 M3 14 L10 19 L17 14' stroke='%23C9A66B' stroke-width='1' stroke-opacity='0.9'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%239F1239'/%3E%3C/svg%3E" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
 <style>
@@ -396,16 +400,16 @@ transition:all .2s;letter-spacing:1px;
 .rsl::after{content:’’;flex:1;height:1px;background:var(--b1);}
 
 /* Week progress */
-.week-stats{display:flex;gap:6px;margin-bottom:10px;}
-.ws-item{flex:1;background:var(--bg2);border:1px solid var(--b1);padding:8px;text-align:center;}
-.ws-lbl{font-size:8px;color:var(--t3);letter-spacing:2px;margin-bottom:2px;text-transform:uppercase;}
-.ws-val{font-family:‘Cinzel’,serif;font-size:14px;font-weight:600;color:var(--t1);}
-.ach-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
-.ach-item{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:6px 10px;font-size:10px;display:flex;align-items:center;gap:4px;border-radius:8px;}
-.ach-item.locked{opacity:.25;}
-.ach-ico{font-size:13px;}
-.ach-nm{font-size:10px;color:var(--t2);}
-.ach-desc{font-size:9px;color:var(--t3);}
+
+
+
+
+
+
+
+
+
+
 
 /* Workout block */
 .wk-block{background:#161A1F;border:1px solid rgba(255,255,255,0.07);padding:16px;margin-bottom:8px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.5),0 1px 3px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.03);}
@@ -426,27 +430,27 @@ transition:all .2s;letter-spacing:1px;
 .wk-dur{font-size:9px;color:var(--t3);margin-top:6px;border-top:1px solid var(--b1);padding-top:5px;letter-spacing:1px;}
 
 /* Habits */
-.habit-grid-wrap{background:var(--bg2);border:1px solid var(--b1);padding:12px 14px;}
-.habit-rows{display:flex;flex-direction:column;}
-.habit-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
-.habit-row:last-child{margin-bottom:0;}
-.habit-row-top{display:flex;align-items:center;gap:7px;}
-.habit-row-ico{font-size:12px;flex-shrink:0;}
-.habit-row-lbl{font-size:11px;color:var(--t2);flex:1;}
-.habit-streak{font-size:10px;color:var(--gold);font-family:‘Cinzel’,serif;font-weight:600;}
-.habit-del{background:none;border:none;color:var(--t3);font-size:12px;cursor:pointer;padding:0 2px;opacity:.3;transition:opacity .15s;}
-.habit-del:hover{opacity:1;color:#e05a5a;}
-.habit-add-btn{display:flex;align-items:center;gap:6px;background:none;border:1px dashed var(--b2);padding:6px 12px;color:var(--t3);font-size:9px;font-family:‘JetBrains Mono’,monospace;cursor:pointer;width:100%;margin-top:4px;transition:all .2s;letter-spacing:2px;text-transform:uppercase;}
-.habit-add-btn:hover{border-color:var(--gold);color:var(--gold);}
-.habit-add-form{display:flex;gap:6px;margin-top:6px;align-items:center;}
-.habit-add-form input{flex:1;background:var(--bg3);border:1px solid var(--b2);padding:6px 10px;color:var(--t1);font-size:11px;font-family:‘JetBrains Mono’,monospace;outline:none;}
-.habit-add-form input:focus{border-color:var(--gold);}
-.habit-save-btn{background:rgba(201,166,107,.1);border:1px solid rgba(201,166,107,.3);padding:6px 12px;color:var(--gold);font-size:9px;font-family:‘JetBrains Mono’,monospace;cursor:pointer;letter-spacing:2px;}
-.habit-cells{display:flex;gap:2px;flex-wrap:nowrap;overflow:hidden;}
-.h-cell{width:10px;height:10px;background:var(--b1);flex-shrink:0;cursor:pointer;transition:all .15s;}
-.h-cell:hover{opacity:.7;}
-.h-cell.l4{background:var(--gold);opacity:.6;}
-.h-cell.today-empty{background:var(--b1);box-shadow:inset 0 0 0 1px var(--b2);}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ── WORKOUT PAGE ── */
 .wp{flex-direction:column;overflow-y:auto;padding:24px 28px;gap:18px;}
@@ -1775,6 +1779,101 @@ transition:opacity .15s;
 .google-btn:active{transform:scale(0.97);}
 .google-btn svg{flex-shrink:0;}
 .auth-divider{font-size:10px;color:#333;letter-spacing:2px;margin:4px 0 12px;}
+
+/* ── DAY PROGRESS WIDGET ── */
+.day-progress-widget{
+  margin:0 12px 14px;
+  background:#161A1F;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px;
+  padding:16px 18px 14px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04);
+  position:relative;overflow:hidden;
+}
+.day-progress-widget::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,184,0,0.3),transparent);
+}
+.dpw-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.dpw-date{font-size:11px;color:#707070;letter-spacing:0.5px;}
+.dpw-rank{font-size:10px;color:var(--gold);letter-spacing:1px;font-family:'JetBrains Mono',monospace;}
+.dpw-pct{font-family:'Cinzel',serif;font-size:32px;font-weight:700;color:#E8E8E8;line-height:1;margin-bottom:2px;}
+.dpw-label{font-size:12px;color:#606060;margin-bottom:14px;letter-spacing:0.3px;}
+.dpw-bar-bg{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:12px;}
+.dpw-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#E8A800,#FFB800,#FFD060);transition:width 0.8s cubic-bezier(0.34,1.2,0.64,1);box-shadow:0 0 8px rgba(255,184,0,0.3);}
+.dpw-blocks{display:flex;gap:4px;}
+.dpw-block-dot{
+  flex:1;height:4px;border-radius:2px;
+  background:rgba(255,255,255,0.08);
+  transition:background 0.4s ease;
+}
+.dpw-block-dot.done{background:var(--gold);}
+.dpw-block-dot.active{background:rgba(255,184,0,0.4);animation:dpw-pulse 1.5s ease-in-out infinite;}
+@keyframes dpw-pulse{0%,100%{opacity:0.4;}50%{opacity:1;}}
+.dpw-next{
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,0.05);
+  display:flex;align-items:center;gap:8px;
+}
+.dpw-next-icon{font-size:14px;opacity:0.6;}
+.dpw-next-text{font-size:12px;color:#808080;flex:1;}
+.dpw-next-time{font-size:11px;color:var(--gold);font-family:'JetBrains Mono',monospace;font-weight:500;}
+
+/* ── STREAK WIDGET ── */
+.streak-widget{
+  margin:0 12px 14px;
+  background:linear-gradient(135deg,rgba(255,184,0,0.08) 0%,rgba(255,184,0,0.03) 100%);
+  border:1px solid rgba(255,184,0,0.2);
+  border-radius:14px;
+  padding:14px 16px;
+  display:flex;align-items:center;gap:14px;
+}
+.streak-widget.hidden{display:none;}
+.sw-icon{font-size:28px;line-height:1;flex-shrink:0;}
+.sw-body{flex:1;min-width:0;}
+.sw-count{font-family:'Cinzel',serif;font-size:22px;font-weight:700;color:#FFB800;line-height:1;margin-bottom:2px;}
+.sw-msg{font-size:12px;color:#A0A0A0;letter-spacing:0.2px;}
+.sw-days{font-size:10px;color:#606060;margin-top:2px;}
+
+/* ── SKELETON LOADING ── */
+.skeleton-wrap{padding:0 12px;}
+.skeleton-card{
+  background:#161A1F;border:1px solid rgba(255,255,255,0.04);
+  border-radius:12px;padding:16px;margin-bottom:14px;
+}
+.sk-line{height:10px;border-radius:5px;background:rgba(255,255,255,0.06);margin-bottom:8px;position:relative;overflow:hidden;}
+.sk-line::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.06) 50%,transparent 100%);animation:sk-shimmer 1.4s ease-in-out infinite;}
+@keyframes sk-shimmer{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
+.sk-line.w60{width:60%;}
+.sk-line.w40{width:40%;}
+.sk-line.w80{width:80%;}
+.sk-line.h16{height:16px;}
+.sk-tasks{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.sk-task{height:8px;border-radius:4px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden;}
+.sk-task::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent);animation:sk-shimmer 1.4s ease-in-out infinite;}
+
+/* ── CHECKPOINT STATUS COLORS ── */
+.cp-item.done .cp-card{
+  border-left:3px solid rgba(34,197,94,0.5)!important;
+  background:rgba(34,197,94,0.02)!important;
+}
+.cp-item.future .cp-card{
+  opacity:0.6;
+}
+.cp-item.active .cp-card{
+  border-left:3px solid #FFB800!important;
+}
+
+/* ── RANK BADGE in topbar ── */
+.rank-badge{
+  font-size:9px;color:var(--gold);
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:1px;opacity:0.8;
+  white-space:nowrap;
+}
+
+
+@media(max-width:768px){#h-rank{display:block!important;}}
 </style>
 </head>
 <body>
@@ -1877,7 +1976,7 @@ transition:opacity .15s;
         </div>
       </div>
       <div id="tw"></div>
-      <div id="week-dash" style="display:none"></div>
+      
     </div>
   </div>
 </div>
@@ -1929,7 +2028,7 @@ transition:opacity .15s;
       <div class="fg-ir"><input class="fg-i" id="fc-i" type="number" placeholder="Сумма в $"><button class="fg-add" onclick="finOp('cry',1)">+ Добавить</button><button class="fg-sub-btn" onclick="finOp('cry',-1)">− Снять</button></div>
       <div id="fc-hist"></div>
     </div>
-  </div>
+    <div id="savings-chart" style="background:#161A1F;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;display:none;margin-top:4px;"></div>
 </div>
 
 <!-- PROJECTS PAGE -->
@@ -1970,7 +2069,7 @@ transition:opacity .15s;
       </div>
     </div>
     <div class="m-r2">
-      <div><label class="m-l">Время</label><input class="m-i" id="cp-tm" type="time" value="09:00"></div>
+      <div><label class="m-l">Время</label><input class="m-i" id="cp-tm" type="time"></div>
       <div><label class="m-l">XP</label><input class="m-i" id="cp-xp" type="number" value="20"></div>
     </div>
     <div class="m-r">
@@ -2338,7 +2437,7 @@ async function decryptData(payload,key){
   return JSON.parse(new TextDecoder().decode(buf));
 }
 
-const ENCRYPTED_FIELDS=['days','fin','projects','achievements','rewards','streak','xp','totalXP','level','xpNext','lastDate','streakShield','notes','permTasks','permCps','deletedTasks','deletedCps'];
+const ENCRYPTED_FIELDS=['days','fin','projects','achievements','rewards','streak','xp','totalXP','level','xpNext','lastDate','streakShield','permTasks','permCps','deletedTasks','deletedCps','projectActivity','defaultProjectsInjected'];
 
 async function encryptG(key){
   const payload={encrypted:true,lastSaved:G.lastSaved};
@@ -2385,9 +2484,14 @@ function startOfflineMode(){
   _fbReady=false;
   hideAppLoading();
   if(_currentUser){return;}
-  G=load()||defaultG();
+  G=migrate(load())||defaultG();
+  injectDefaultProjects();
   ensureDay(new Date());
-  renderHeader();renderDash();initMobile();scrollToActiveBlock();
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
+  document.getElementById('page-dash')?.classList.add('on');
+  document.querySelectorAll('.nav-btn').forEach((e,i)=>{e.classList.toggle('on',i===0);});
+  renderHeader();renderDash();
+  setTimeout(()=>{renderDash();initMobile();scrollToActiveBlock();},150);
   checkWelcome();
 }
 
@@ -2409,14 +2513,15 @@ async function initDataForUser(uid){
     else{rawData=null;}
 
     if(rawData?.encrypted&&_cryptoKey){
-      try{G=await decryptG(rawData,_cryptoKey);}
+      try{G=migrate(await decryptG(rawData,_cryptoKey))||defaultG();}
       catch(e){G=defaultG();}
     } else if(rawData&&!rawData.encrypted){
-      G=rawData;
+      G=migrate(rawData)||defaultG();
     } else {
       G=defaultG();
     }
 
+    injectDefaultProjects();
     _fbReady=true;
     _fbRef.on('value',async snap=>{
       if(_fbProcessing)return;
@@ -2425,14 +2530,19 @@ async function initDataForUser(uid){
         const r=snap.val();
         if(!r||!_fbReady)return;
         if((r.lastSaved||0)>(G.lastSaved||0)){
-          if(r.encrypted&&_cryptoKey){try{G=await decryptG(r,_cryptoKey);}catch(e){return;}}
-          else if(!r.encrypted){G=r;}
+          if(r.encrypted&&_cryptoKey){try{G=migrate(await decryptG(r,_cryptoKey))||defaultG();}catch(e){return;}}
+          else if(!r.encrypted){G=migrate(r)||defaultG();}
           renderHeader();renderDash();renderFinMini();
         }
       }finally{_fbProcessing=false;}
     });
     ensureDay(new Date());
-    renderHeader();renderDash();initMobile();scrollToActiveBlock();
+    document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
+    document.getElementById('page-dash')?.classList.add('on');
+    document.querySelectorAll('.nav-btn').forEach((e,i)=>{e.classList.toggle('on',i===0);});
+    renderHeader();renderDash();
+    setTimeout(()=>{renderDash();initMobile();scrollToActiveBlock();},150);
+    checkDailyBonus();
     checkWelcome();
   }).catch(()=>startOfflineMode());
 }
@@ -2626,7 +2736,7 @@ function updatePinDots(){
 
 function load(){try{return JSON.parse(localStorage.getItem(SK)||'null');}catch{return null;}}
 function defaultG(){
-  return{level:1,xp:0,xpNext:100,totalXP:0,streak:0,lastDate:null,streakShield:1,days:{},rewards:DEF_REWARDS(),notes:{},projects:[],achievements:[],fin:{apt:{cur:0,tgt:15000000,hist:[]},cry:{cur:0,tgt:1000000,hist:[]}}};
+  return{level:1,xp:0,xpNext:100,totalXP:0,streak:0,lastDate:null,streakShield:1,days:{},rewards:DEF_REWARDS(),projects:[],achievements:[],projectActivity:{},fin:{apt:{cur:0,tgt:15000000,hist:[]},cry:{cur:0,tgt:1000000,hist:[]}}};
 }
 function save(){
   if(!G.lastSaved)G.lastSaved=0;
@@ -2658,6 +2768,67 @@ function save(){
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,9);}
 
 // ── DATA ──
+
+// ── RANKS ──
+const RANKS=[
+  {min:0,    name:'Новичок',    icon:'○'},
+  {min:100,  name:'Ученик',     icon:'◎'},
+  {min:300,  name:'Практик',   icon:'◈'},
+  {min:600,  name:'Боец',      icon:'◆'},
+  {min:1000, name:'Воин',      icon:'❖'},
+  {min:1600, name:'Страж',     icon:'⬡'},
+  {min:2400, name:'Самурай',   icon:'⚔'},
+  {min:3400, name:'Мастер',    icon:'✦'},
+  {min:4800, name:'Монах',     icon:'☯'},
+  {min:6500, name:'Ронин',     icon:'⚡'},
+  {min:8500, name:'Сенсей',    icon:'⭐'},
+  {min:11000,name:'Сёгун',     icon:'👁'},
+  {min:14000,name:'Легенда',   icon:'◉'},
+  {min:18000,name:'Бессмертный',icon:'∞'},
+  {min:25000,name:'Дух Самурая',icon:'🔥'},
+];
+function getRank(totalXP){
+  let r=RANKS[0];
+  for(const rank of RANKS){if(totalXP>=rank.min)r=rank;}
+  return r;
+}
+function getNextRank(totalXP){
+  for(let i=0;i<RANKS.length-1;i++){if(totalXP<RANKS[i+1].min)return RANKS[i+1];}
+  return null;
+}
+
+// ── STREAK MESSAGES ──
+const STREAK_MSGS=[
+  {min:1,  msg:'Первый шаг сделан'},
+  {min:3,  msg:'Привычка формируется'},
+  {min:7,  msg:'Неделя без остановки'},
+  {min:14, msg:'Две недели силы'},
+  {min:21, msg:'Привычка закреплена'},
+  {min:30, msg:'Месяц воина'},
+  {min:50, msg:'Полпути к мастерству'},
+  {min:66, msg:'Автоматизм достигнут'},
+  {min:90, msg:'Квартал без пауз'},
+  {min:100,msg:'Сотня. Редкость.'},
+  {min:180,msg:'Полгода дисциплины'},
+  {min:365,msg:'Год. Легенда.'},
+];
+function getStreakMsg(streak){
+  let m=STREAK_MSGS[0];
+  for(const s of STREAK_MSGS){if(streak>=s.min)m=s;}
+  return m.msg;
+}
+
+// ── DAILY BONUS ──
+function checkDailyBonus(){
+  const today=dkey(new Date());
+  const lastBonus=localStorage.getItem('lifeos_daily_bonus');
+  if(lastBonus===today)return;
+  localStorage.setItem('lifeos_daily_bonus',today);
+  const bonus=Math.min(10+G.streak*5,300);
+  gainXP(bonus);
+  setTimeout(()=>showToast('🎁 Ежедневный бонус: +'+bonus+' XP'+(G.streak>1?' (серия ×'+G.streak+')':'')),800);
+}
+
 const WORKOUT_SCHEDULE={1:{type:'full',idx:0},2:{type:'light',idx:0},3:{type:'full',idx:1},4:{type:'light',idx:1},5:{type:'full',idx:2},6:{type:'weekend',idx:0},0:{type:'weekend',idx:1}};
 const WP_FULL=[
   {day:'ПН — ГРУДЬ / ТРИЦЕПС',foc:'Грудь · Трицепс · Плечи',eq:'Гиря 16 кг · Резинка · Коврик',dur:'~45–50 мин',
@@ -2797,7 +2968,7 @@ if(!G.rewards)G.rewards=DEF_REWARDS();
 if(!G.projects)G.projects=[];
 const _digestProjects=[{"name":"Abstract","status":"active","next":"Собрать XP, Gate LP Badge: своп ETH + добавить ликву, ежедневные задания","inp":0,"out":0,"date":""},{"name":"xStocks","status":"active","next":"Подключить кошелёк → получить 20% буст. Трейдинг + холд + ликва → поинты","inp":0,"out":0,"date":""},{"name":"Variational","status":"active","next":"Фармить поинты через объёмы и ликву. Фандинг >2% — арбитраж","inp":0,"out":0,"date":""},{"name":"Nado (nadoHQ)","status":"active","next":"Поинты за объём и рефы. Объёмы + рефы — главное","inp":0,"out":0,"date":""},{"name":"01.xyz","status":"active","next":"Фармить поинты через объём на мейне (~200k obj = ~237 pts)","inp":0,"out":0,"date":""},{"name":"Noise","status":"wait","next":"Зарегаться на waitlist. Ставки на популярный контент в интернете","inp":0,"out":0,"date":""},{"name":"Immutable Play Portal","status":"active","next":"3 реферала (каждый играет в 2 игры) = $15 гарантом + раффл $1000","inp":0,"out":0,"date":""},{"name":"Limit Break (AppTokens)","status":"active","next":"Зарегаться на тестнет apptokens.com/testnet-signup","inp":0,"out":0,"date":""},{"name":"Sunday Robotics","status":"active","next":"Заполнить Beta WL → форма на почту","inp":0,"out":0,"date":""},{"name":"Robinhood L2","status":"active","next":"Тестнет: токены → домен → GM → Deploy → бейдж","inp":0,"out":0,"date":""},{"name":"Perle Labs","status":"active","next":"Снепшот скоро — добить квесты на платформе","inp":0,"out":0,"date":""},{"name":"Callshot","status":"active","next":"callshot.com → ввести почту, сминтить карточку, нагнать рефов","inp":0,"out":0,"date":""},{"name":"Bulk (Solana Perp)","status":"active","next":"Тестнет Paper Mainnet. 10–15 минут, бесплатно. Tier 3","inp":0,"out":0,"date":""},{"name":"Oshi","status":"active","next":"Минт Oshi Pass → OG Badge → возможный дроп","inp":0,"out":0,"date":""},{"name":"Noble L1","status":"active","next":"18 марта запуск EVM L1 — следить за активностью","inp":0,"out":0,"date":""}];
 if(!G.defaultProjectsInjected){_digestProjects.forEach(dp=>{if(!G.projects.some(p=>p.name===dp.name)){G.projects.push({id:uid(),...dp});}});G.defaultProjectsInjected=true;save();}
-if(!G.notes)G.notes={};
+
 if(!G.fin)G.fin={apt:{cur:0,tgt:15000000,hist:[]},cry:{cur:0,tgt:1000000,hist:[]}};
 
 let curDate=new Date();
@@ -2815,6 +2986,146 @@ function ensureDay(d){
   }
   if(!G.days[k].tasksDone)G.days[k].tasksDone={};
   return G.days[k];
+}
+
+
+// ── DAY PROGRESS WIDGET ──
+function renderDayProgressWidget(){
+  const mob=isMobile();
+  let el=document.getElementById('day-progress-widget');
+  if(!el){
+    if(!mob)return;
+
+    el=document.createElement('div');
+    el.id='day-progress-widget';
+    el.className='day-progress-widget';
+    const dl=document.querySelector('.dash-left');
+    const tl=document.getElementById('tl');
+    if(dl&&tl)dl.insertBefore(el,tl);
+  }
+  const dk=dkey(curDate);
+  const day=G.days[dk];
+  const cps=day?day.cps:[];
+  const total=cps.length;
+  const done=cps.filter(c=>c.arrived).length;
+  const pct=total?Math.round(done/total*100):0;
+  const rank=getRank(G.totalXP);
+  const nextRank=getNextRank(G.totalXP);
+  const today=new Date();
+  const dateStr=WD[curDate.getDay()]+', '+curDate.getDate()+' '+MN[curDate.getMonth()];
+
+  // Next block
+  const fa=cps.findIndex(c=>!c.arrived);
+  let nextHtml='';
+  if(fa>=0&&cps[fa]){
+    const next=cps[fa];
+    const [h,m]=next.time.split(':').map(Number);
+    const nowMin=today.getHours()*60+today.getMinutes();
+    const nextMin=h*60+m;
+    const diff=nextMin-nowMin;
+    let timeStr='';
+    if(diff>0&&diff<180){
+      timeStr=diff>=60?Math.floor(diff/60)+'ч '+(diff%60>0?diff%60+'мин':''):diff+'мин';
+    } else if(diff<=0){
+      timeStr='сейчас';
+    }
+    nextHtml=`<div class="dpw-next">
+      <div class="dpw-next-icon">${resolveIcon(next.icon,14)}</div>
+      <div class="dpw-next-text">${next.name}</div>
+      ${timeStr?`<div class="dpw-next-time">${timeStr}</div>`:''}
+    </div>`;
+  } else if(done===total&&total>0){
+    nextHtml=`<div class="dpw-next"><div class="dpw-next-text" style="color:#22C55E">✓ День закрыт</div></div>`;
+  }
+
+  // Block dots
+  const dotsHtml=cps.map((cp,i)=>`<div class="dpw-block-dot ${cp.arrived?'done':i===fa?'active':''}"></div>`).join('');
+
+  el.innerHTML=`
+    <div class="dpw-top">
+      <div class="dpw-date">${dateStr}</div>
+      <div class="dpw-rank">${rank.icon} ${rank.name}</div>
+    </div>
+    <div class="dpw-pct">${pct}%</div>
+    <div class="dpw-label">${done} из ${total} блоков выполнено</div>
+    <div class="dpw-bar-bg"><div class="dpw-bar-fill" style="width:${pct}%"></div></div>
+    ${total>0?`<div class="dpw-blocks">${dotsHtml}</div>`:''}
+    ${nextHtml}
+  `;
+}
+
+// ── STREAK WIDGET ──
+function renderStreakWidget(){
+  if(!isMobile())return;
+  let el=document.getElementById('streak-widget');
+  if(!el){
+    el=document.createElement('div');
+    el.id='streak-widget';
+    el.className='streak-widget';
+    const dl=document.querySelector('.dash-left');
+    const dpw=document.getElementById('day-progress-widget');
+    if(dl&&dpw)dl.insertBefore(el,dpw.nextSibling);
+    else if(dl){const tl=document.getElementById('tl');if(tl)dl.insertBefore(el,tl);}
+  }
+  if(G.streak===0){el.classList.add('hidden');return;}
+  el.classList.remove('hidden');
+  const msg=getStreakMsg(G.streak);
+  const fire=G.streak>=30?'🔥':G.streak>=7?'⚡':'✦';
+  el.innerHTML=`
+    <div class="sw-icon">${fire}</div>
+    <div class="sw-body">
+      <div class="sw-count">${G.streak}</div>
+      <div class="sw-msg">${msg}</div>
+      <div class="sw-days">дней подряд · щит: ${G.streakShield||0}</div>
+    </div>
+  `;
+}
+
+// ── SKELETON LOADING ──
+function showSkeleton(){
+  if(!isMobile())return;
+  const tl=document.getElementById('tl');
+  if(!tl)return;
+  tl.innerHTML=`<div class="skeleton-wrap">
+    ${[1,2,3].map((_,i)=>`<div class="skeleton-card">
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+        <div class="sk-line" style="width:14px;height:14px;border-radius:50%;flex-shrink:0"></div>
+        <div class="sk-line w60 h16" style="margin-bottom:0"></div>
+        <div class="sk-line w40" style="margin-bottom:0;margin-left:auto"></div>
+      </div>
+      <div class="sk-tasks">
+        ${[1,2,3].map(()=>`<div style="display:flex;align-items:center;gap:8px"><div class="sk-task" style="width:18px;height:18px;border-radius:4px;flex-shrink:0"></div><div class="sk-task" style="flex:1;height:10px;border-radius:5px"></div></div>`).join('')}
+      </div>
+      ${i===0?`<div class="sk-line" style="height:44px;border-radius:10px;margin-top:12px"></div>`:''}
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── HAPTIC PATTERNS ──
+function haptic(type){
+  if(!navigator.vibrate)return;
+  const patterns={
+    light:[8],
+    medium:[20],
+    heavy:[35],
+    success:[10,60,20],
+    task_done:[12],
+    block_done:[20,40,20,40,40],
+    day_done:[30,50,30,50,80],
+    xp:[6,30,6],
+    error:[40,30,40],
+  };
+  navigator.vibrate(patterns[type]||[10]);
+}
+
+// ── AUTO TIME for new checkpoint ──
+function getSmartTime(){
+  const now=new Date();
+  const h=now.getHours();
+  const m=Math.ceil(now.getMinutes()/15)*15;
+  const adjH=m>=60?h+1:h;
+  const adjM=m>=60?0:m;
+  return String(adjH).padStart(2,'0')+':'+String(adjM).padStart(2,'0');
 }
 
 // ── PAGES ──
@@ -2837,7 +3148,7 @@ function pg(p){
   if(p==='dash')renderDash();
   if(p==='work')renderWorkout();
   if(p==='shop')renderShop();
-  if(p==='fin')renderFin();
+  if(p==='fin'){renderFin();renderSavingsChart();}
   if(p==='proj')renderProjPage();
   if(p==='stats')renderStatsPage();
 }
@@ -2979,17 +3290,34 @@ function renderProjPage(){
     const pc=profit>0?'pos':profit<0?'neg':'zero';
     const sc=p.status||'wait';
     const _pm={'Meteora':'__crypto__','Abstract':'__work__','Ronin':'__train__','Polymarket':'__career__','NFT':'__light__'};const icoKey=Object.entries(_pm).find(([k])=>p.name.includes(k))?.[1]||'__crypto__';const ico=resolveIcon(icoKey,18);
+    // Deadline alert
+    let deadlineAlert='';
+    if(p.date&&sc!=='done'){
+      const months={'январ':0,'феврал':1,'март':2,'апрел':3,'май':4,'июн':5,'июл':6,'август':7,'сентябр':8,'октябр':9,'ноябр':10,'декабр':11,'jan':0,'feb':1,'mar':2,'apr':3,'jun':5,'jul':6,'aug':7,'sep':8,'oct':9,'nov':10,'dec':11};
+      const dl=p.date.toLowerCase();
+      let dDate=null;
+      for(const[k,v] of Object.entries(months)){if(dl.includes(k)){const yr=dl.match(/\d{4}/);dDate=new Date(yr?+yr[0]:new Date().getFullYear(),v,28);break;}}
+      if(dDate){const diff=Math.ceil((dDate-new Date())/86400000);if(diff>=0&&diff<=7)deadlineAlert=`<span style="font-size:9px;color:#e05a7a;margin-left:6px;font-family:'JetBrains Mono',monospace">⚠ ${diff===0?'сегодня':diff+'д'}</span>`;}
+    }
+    // Activity dots for this week
+    const actDots=getActivityDots(p.id).map(d=>`<div onclick="event.stopPropagation();toggleProjectActivity('${p.id}')" style="flex:1;height:6px;border-radius:2px;cursor:pointer;background:${d.done?'#FFB800':d.isToday?'rgba(255,184,0,0.25)':'rgba(255,255,255,0.07)'};${d.isToday?'outline:1px solid rgba(255,184,0,0.4);outline-offset:1px;':''}" title="${d.k}"></div>`).join('');
+    const todayDone=getActivityDots(p.id).find(d=>d.isToday&&d.done);
     return`<div class="pp-card" style="animation-delay:${idx*50}ms">
       <div class="pp-card-top" onclick="editProj(${p.id})">
         <div class="pp-card-icon">${ico}</div>
         <div class="pp-card-info">
-          <div class="pp-card-name">${p.name}</div>
+          <div class="pp-card-name">${p.name}${deadlineAlert}</div>
           <div class="pp-card-next">${p.next||'Нет следующего шага'}</div>
         </div>
         <div class="pp-card-right">
           <div class="pp-card-profit ${pc}">${profitStr}</div>
           <span class="pp-card-status ${sc}">${statusLabel[sc]||'—'}</span>
         </div>
+      </div>
+      <div style="padding:6px 16px 8px;display:flex;align-items:center;gap:8px">
+        <div style="font-size:8px;color:#404040;letter-spacing:1.5px;flex-shrink:0;text-transform:uppercase">Неделя</div>
+        <div style="display:flex;gap:3px;flex:1">${actDots}</div>
+        <div style="font-size:9px;color:${todayDone?'#FFB800':'#404040'}">${todayDone?'✓ был':'?'}</div>
       </div>
       <div class="pp-card-actions">
         <button class="pp-card-btn edit" onclick="editProj(${p.id})">✏ Редакт</button>
@@ -3000,7 +3328,7 @@ function renderProjPage(){
 }
 
 // ── DASHBOARD ──
-function renderDash(){renderHeader();renderTimeline();renderWeekMini();renderMidStats();renderFinMini();renderTodayWorkout();renderProjects();renderWeekDash();renderQuote();renderMobileWorkout();}
+function renderDash(){renderHeader();renderDayProgressWidget();renderStreakWidget();renderTimeline();renderWeekMini();renderMidStats();renderFinMini();renderTodayWorkout();renderQuote();renderMobileWorkout();}
 
 function renderHeader(){
   document.getElementById('h-lv').textContent=G.level;
@@ -3016,6 +3344,8 @@ function renderHeader(){
   const p=Math.min(100,G.xp/G.xpNext*100);
   document.getElementById('h-xpf').style.width=p+'%';
   document.getElementById('h-xpt').textContent=G.xp+'/'+G.xpNext;
+  const _rankEl=document.getElementById('h-rank');
+  if(_rankEl){const _r=getRank(G.totalXP);_rankEl.textContent=_r.icon+' '+_r.name;}
 }
 
 function renderTimeline(){
@@ -3408,7 +3738,7 @@ function arrive(dk,cpId){
       G.streak++;G.lastDate=tk;
       if(new Date().getDay()===0){if(!G.streakShield)G.streakShield=0;G.streakShield=Math.min((G.streakShield||0)+1,2);showToast('▣ +1 Защита стрика! Запас: '+G.streakShield);}
       checkAchievements();save();
-      showToast('✦ День закрыт · серия '+G.streak+(G.streak%7===0?' ✦✦✦':''));
+      haptic('day_done');showToast('✦ День закрыт · серия '+G.streak+(G.streak%7===0?' ✦✦✦':''));
     }
   } else showToast('✓ '+cp.name+' +'+cp.xp+' XP');
   save();renderDash();
@@ -3530,7 +3860,11 @@ function delPermTask(id){
 
 // ── MODALS ──
 function openOv(id){
-  if(id==='modal-cp'){_cpDays=[];renderCpDays();}
+  if(id==='modal-cp'){
+    _cpDays=[];renderCpDays();
+    const tmEl=document.getElementById('cp-tm');
+    if(tmEl)tmEl.value=getSmartTime();
+  }
   if(id==='modal-perm-task'){renderPermTaskList();}
   document.getElementById(id).classList.add('open');
 }
@@ -3620,7 +3954,7 @@ function finOp(k,sign){
   G.fin[k].cur=Math.max(0,G.fin[k].cur+sign*v);
   G.fin[k].hist.push({date:new Date().toLocaleDateString('ru-RU'),a:sign*v});
   document.getElementById(p+'-i').value='';
-  save();renderFin();renderFinMini();
+  save();renderFin();renderFinMini();renderSavingsChart();
   showToast((sign>0?'+ ':'− ')+(sym==='₽'?v.toLocaleString('ru-RU')+' ₽':'$ '+v.toLocaleString('en-US')));
 }
 
@@ -3630,7 +3964,7 @@ function gainXP(a){
   while(G.xp>=G.xpNext){G.xp-=G.xpNext;G.level++;G.xpNext=Math.floor(G.xpNext*1.6);showToast('✦ Уровень → '+G.level);}
   const f=document.createElement('div');f.className='xpf';f.textContent='+'+a+' xp';
   f.style.left=(25+Math.random()*40)+'vw';f.style.top='35vh';
-  document.body.appendChild(f);setTimeout(()=>f.remove(),1400);
+  haptic('xp');document.body.appendChild(f);setTimeout(()=>f.remove(),1400);
   renderHeader();save();
 }
 
@@ -3655,40 +3989,7 @@ function checkAchievements(){
   });
 }
 
-function renderWeekDash(){
-  const mon=startOfWeek(new Date());
-  const days=[];
-  for(let i=0;i<7;i++){
-    const d=addDays(mon,i),dk=dkey(d),day=G.days[dk];
-    const isToday=dk===dkey(new Date());
-    const expectedCps=defCps(d.getDay());
-    const total=day?day.cps.length:expectedCps.length;
-    const done=day?day.cps.filter(c=>c.arrived).length:0;
-    const pct=total?Math.round(done/total*100):0;
-    const wd=['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'][d.getDay()];
-    days.push({wd,done,total,pct,isToday,isFuture:d>new Date()});
-  }
-  const totalDone=days.reduce((a,d)=>a+d.done,0);
-  const totalAll=days.reduce((a,d)=>a+d.total,0);
-  const weekPct=totalAll?Math.round(totalDone/totalAll*100):0;
-  const el=document.getElementById('week-dash');
-  if(!el)return;
-  el.innerHTML=`
-    <div style="display:flex;gap:3px;margin-bottom:8px">
-      ${days.map(d=>`
-        <div style="flex:1;text-align:center">
-          <div style="font-size:8px;color:${d.isToday?'var(--gold)':'var(--t3)'};margin-bottom:3px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;font-weight:${d.isToday?500:400}">${d.wd}</div>
-          <div style="height:32px;background:var(--bg3);position:relative;overflow:hidden">
-            <div style="position:absolute;bottom:0;width:100%;height:${d.isFuture?0:d.pct}%;background:${d.pct===100?'var(--gold)':d.pct>0?'rgba(201,166,107,.3)':'transparent'};transition:height .4s ease"></div>
-          </div>
-          <div style="font-size:8px;color:var(--t3);margin-top:2px">${d.isFuture?'':d.total?d.done+'/'+d.total:'—'}</div>
-        </div>`).join('')}
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--bg2);border:1px solid var(--b1)">
-      <div style="font-size:9px;color:var(--t3);letter-spacing:2px;text-transform:uppercase">Прогресс недели</div>
-      <div style="font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:${weekPct>=70?'var(--gold)':weekPct>=40?'rgba(201,166,107,.5)':'var(--red3)'}">${weekPct}%</div>
-    </div>`;
-}
+
 
 function renderAchievements(){}
 
@@ -3811,6 +4112,7 @@ function initMobile() {
   if (!isMobile()) return;
   document.getElementById('mobile-tab-bar').style.display = 'flex';
   document.getElementById('fab-mobile').style.display = 'flex';
+  showSkeleton();
   initOfflineBanner();
   initSwipeToClose();
   initPullToRefresh();
@@ -4001,6 +4303,126 @@ function welcomeNext(){
     ws.style.opacity='0';
     setTimeout(()=>ws.classList.remove('open'),300);
   }
+}
+
+
+// ── PWA ──
+(function(){
+  // Dynamic manifest
+  const manifest={
+    name:'LIFE OS',short_name:'LIFE OS',
+    description:'Личный операционник жизни',
+    start_url:window.location.pathname,
+    display:'standalone',
+    background_color:'#111318',
+    theme_color:'#111318',
+    orientation:'portrait',
+    icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='%23111318'/%3E%3Cpath d='M10 1 L10 19 M3 6 L10 1 L17 6 M3 14 L10 19 L17 14' stroke='%23C9A66B' stroke-width='1'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%239F1239'/%3E%3C/svg%3E",sizes:'192x192',type:'image/svg+xml'}]
+  };
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  document.getElementById('pwa-manifest').href=url;
+
+  // Service Worker for offline cache
+  if('serviceWorker' in navigator){
+    const swCode=`
+const CACHE='lifeos-v1';
+const FILES=[location.pathname];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)));self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(cached=>{const fresh=fetch(e.request).then(r=>{if(r.ok){const clone=r.clone();caches.open(CACHE).then(c=>c.put(e.request,clone));}return r;}).catch(()=>cached);return cached||fresh;}));});
+    `;
+    const swBlob=new Blob([swCode],{type:'application/javascript'});
+    const swUrl=URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl).catch(()=>{});
+  }
+
+  // Install prompt
+  let _deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();_deferredPrompt=e;
+    // Show install hint after 30s if not installed
+    setTimeout(()=>{
+      if(_deferredPrompt&&!window.matchMedia('(display-mode: standalone)').matches){
+        showToast('📲 Добавь приложение на экран');
+        const btn=document.createElement('button');
+        btn.style.cssText='position:fixed;bottom:calc(68px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#FFB800;color:#111;border:none;border-radius:10px;padding:10px 20px;font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;cursor:pointer;z-index:9000;white-space:nowrap;box-shadow:0 4px 16px rgba(255,184,0,0.4)';
+        btn.textContent='📲 Установить приложение';
+        btn.onclick=()=>{_deferredPrompt.prompt();_deferredPrompt.userChoice.then(()=>{_deferredPrompt=null;btn.remove();});};
+        document.body.appendChild(btn);
+        setTimeout(()=>btn.remove(),15000);
+      }
+    },30000);
+  });
+})();
+
+
+// ── SAVINGS CHART ──
+function renderSavingsChart(){
+  const el=document.getElementById('savings-chart');
+  if(!el)return;
+  const aptHist=G.fin.apt.hist||[];
+  const cryHist=G.fin.cry.hist||[];
+  if(!aptHist.length&&!cryHist.length){el.style.display='none';return;}
+  el.style.display='block';
+
+  // Build cumulative data points (last 12 entries max)
+  function buildPoints(hist,tgt){
+    let cum=0;
+    return hist.slice(-12).map((h,i)=>{cum+=h.a;return{i,v:Math.max(0,cum),pct:Math.min(100,Math.round(Math.max(0,cum)/tgt*100))};});
+  }
+  const aptPts=buildPoints(aptHist,G.fin.apt.tgt);
+  const cryPts=buildPoints(cryHist,G.fin.cry.tgt);
+
+  function sparkline(pts,color){
+    if(!pts.length)return '';
+    const maxV=Math.max(...pts.map(p=>p.v),1);
+    const w=280,h=50,pad=4;
+    const xs=pts.map((p,i)=>pad+i*(w-2*pad)/(Math.max(pts.length-1,1)));
+    const ys=pts.map(p=>h-pad-(p.v/maxV)*(h-2*pad));
+    const path='M'+xs.map((x,i)=>`${x},${ys[i]}`).join(' L');
+    const area='M'+xs[0]+','+h+' L'+xs.map((x,i)=>`${x},${ys[i]}`).join(' L')+' L'+xs[xs.length-1]+','+h+' Z';
+    return `<svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <path d="${area}" fill="${color}" opacity="0.1"/>
+      <path d="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      ${pts.length>1?`<circle cx="${xs[xs.length-1]}" cy="${ys[ys.length-1]}" r="3" fill="${color}"/>`:''}
+    </svg>`;
+  }
+
+  el.innerHTML=`<div style="font-size:9px;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:10px">ДИНАМИКА НАКОПЛЕНИЙ</div>
+    ${aptPts.length?`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2);margin-bottom:4px"><span>🏠 Квартира</span><span style="color:var(--gold)">${aptPts[aptPts.length-1]?.pct||0}%</span></div>${sparkline(aptPts,'#FFB800')}</div>`:''}
+    ${cryPts.length?`<div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t2);margin-bottom:4px"><span>₿ Крипта</span><span style="color:var(--red3)">${cryPts[cryPts.length-1]?.pct||0}%</span></div>${sparkline(cryPts,'#e05a7a')}</div>`:''}
+  `;
+}
+
+
+// ── ACTIVITY TRACKER ──
+function toggleProjectActivity(projId){
+  const today=dkey(new Date());
+  if(!G.projectActivity)G.projectActivity={};
+  if(!G.projectActivity[projId])G.projectActivity[projId]=[];
+  const arr=G.projectActivity[projId];
+  const idx=arr.indexOf(today);
+  if(idx>=0){arr.splice(idx,1);}else{arr.push(today);gainXP(5);}
+  save();renderProjPage();
+}
+
+function getProjectActivity(projId){
+  if(!G.projectActivity||!G.projectActivity[projId])return[];
+  return G.projectActivity[projId];
+}
+
+function getActivityDots(projId){
+  const acts=getProjectActivity(projId);
+  const today=dkey(new Date());
+  const dots=[];
+  for(let i=6;i>=0;i--){
+    const k=dkey(addDays(new Date(),-i));
+    const done=acts.includes(k);
+    const isToday=k===today;
+    dots.push({k,done,isToday});
+  }
+  return dots;
 }
 
 </script>
