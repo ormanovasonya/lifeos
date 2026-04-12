@@ -2553,6 +2553,8 @@ loadScripts([
   'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js'
 ],()=>{
   firebase.initializeApp(FB_CONFIG);
+  // Hide loading spinner as soon as Firebase is ready (don't wait for auth state)
+  setTimeout(hideAppLoading, 3000);
   firebase.auth().onAuthStateChanged(user=>{
     hideAppLoading();
     if(user){
@@ -2576,6 +2578,7 @@ loadScripts([
 // ── AUTH FUNCTIONS ──
 
 function showAuthScreen(){
+  hideAppLoading(); // always hide spinner when showing auth
   let el=document.getElementById('auth-screen');
   if(!el){
     el=document.createElement('div');
@@ -3999,13 +4002,28 @@ function showToast(msg){const el=document.getElementById('toast');el.textContent
 
 window.addEventListener('load',()=>{
   initMobile();
-  // Auth handles renderDash after sign-in
-  // Fallback if scripts fail after 6s
+  // Fallback 1: Firebase scripts failed to load (5s)
   setTimeout(()=>{
     if(!_fbReady&&!_currentUser&&!_keyDerivationInProgress){
       startOfflineMode();
     }
-  },8000);
+  },5000);
+  // Fallback 2: Logged in but data never loaded (12s)
+  setTimeout(()=>{
+    const loading=document.getElementById('app-loading');
+    if(loading&&!loading.classList.contains('hide')){
+      // Still showing spinner after 12s — force show dashboard
+      hideAppLoading();
+      if(!document.querySelector('.page.on')){
+        G=migrate(load())||defaultG();
+        injectDefaultProjects();
+        ensureDay(new Date());
+        document.getElementById('page-dash')?.classList.add('on');
+        document.querySelectorAll('.nav-btn').forEach((e,i)=>e.classList.toggle('on',i===0));
+        renderHeader();renderDash();initMobile();
+      }
+    }
+  },12000);
 });
 
 
@@ -4308,20 +4326,26 @@ function welcomeNext(){
 
 // ── PWA ──
 (function(){
-  // Dynamic manifest
-  const manifest={
-    name:'LIFE OS',short_name:'LIFE OS',
-    description:'Личный операционник жизни',
-    start_url:window.location.pathname,
-    display:'standalone',
-    background_color:'#111318',
-    theme_color:'#111318',
-    orientation:'portrait',
-    icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='%23111318'/%3E%3Cpath d='M10 1 L10 19 M3 6 L10 1 L17 6 M3 14 L10 19 L17 14' stroke='%23C9A66B' stroke-width='1'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%239F1239'/%3E%3C/svg%3E",sizes:'192x192',type:'image/svg+xml'}]
-  };
-  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  document.getElementById('pwa-manifest').href=url;
+  // Dynamic manifest — start_url must be absolute path, not blob
+  try{
+    const _path=window.location.pathname.replace(/\/[^\/]*$/, '/') || '/';
+    const manifest={
+      name:'LIFE OS',short_name:'LIFE OS',
+      description:'Личный операционник жизни',
+      start_url:window.location.href.split('?')[0],
+      scope:_path,
+      display:'standalone',
+      background_color:'#111318',
+      theme_color:'#111318',
+      orientation:'portrait-primary',
+      icons:[
+        {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='%23111318'/%3E%3Cpath d='M10 1 L10 19 M3 6 L10 1 L17 6 M3 14 L10 19 L17 14' stroke='%23C9A66B' stroke-width='1'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%239F1239'/%3E%3C/svg%3E",sizes:'192x192',type:'image/svg+xml',purpose:'any maskable'}
+      ]
+    };
+    const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    document.getElementById('pwa-manifest').href=url;
+  }catch(e){}
 
   // Service Worker for offline cache
   if('serviceWorker' in navigator){
