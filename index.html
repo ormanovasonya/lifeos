@@ -2559,10 +2559,15 @@ loadScripts([
     if(user){
       _currentUser=user;
       document.getElementById('auth-screen')?.remove();
-      const _savedPin=localStorage.getItem('lifeos_pin_hash');
-      if(_savedPin){
-        const _kl3=document.getElementById('key-loading');if(_kl3)_kl3.classList.add('show');
-        _keyDerivationInProgress=true;deriveCryptoKey(user.email||user.uid,_savedPin).then(key=>{_keyDerivationInProgress=false;if(_kl3)_kl3.classList.remove('show');_cryptoKey=key;initDataForUser(user.uid);});
+      const _savedPinHash=localStorage.getItem('lifeos_pin_hash');
+      if(_savedPinHash){
+        // PIN хеш есть — нужно попросить ввести сам PIN для деривации ключа шифрования
+        // Нельзя использовать хеш напрямую как PIN — это разные вещи
+        localStorage.setItem('lifeos_pin_email', user.email||user.uid);
+        _keyDerivationInProgress=true;
+        _pinMode='enter';
+        _pinForUser=user.uid;
+        showPinFallback();
       } else {
         initDataForUser(user.uid);
       }
@@ -2647,6 +2652,7 @@ function authSignOut(){
 
 // ── PIN FALLBACK ──
 let _pinMode='enter';
+let _pinForUser=null; // uid of Firebase user awaiting PIN entry
 
 async function hashPin(pin){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('lifeos:'+pin));
@@ -2690,15 +2696,22 @@ async function pinKey(k){
       const savedHash=localStorage.getItem('lifeos_pin_hash');
       const inputHash=await hashPin(_pinInput); if(inputHash===savedHash){
         document.getElementById('pin-screen').style.display='none';
-        document.getElementById('auth-screen').style.display='none';
         const _pinEmail=localStorage.getItem('lifeos_pin_email')||'local@lifeos';
         const _kl=document.getElementById('key-loading');if(_kl)_kl.classList.add('show');
         deriveCryptoKey(_pinEmail,_pinInput).then(key=>{
           if(_kl)_kl.classList.remove('show');
           _cryptoKey=key;
-          const raw=load();
-          if(raw?.encrypted){decryptG(raw,key).then(d=>{G=d;ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();}).catch(()=>{G=defaultG();ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();});}
-          else{G=raw||defaultG();ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();}
+          _keyDerivationInProgress=false;
+          if(_pinForUser){
+            // Firebase-сессия: загружаем данные через Firebase
+            const uid=_pinForUser;_pinForUser=null;
+            initDataForUser(uid);
+          } else {
+            // Офлайн-режим
+            const raw=load();
+            if(raw?.encrypted){decryptG(raw,key).then(d=>{G=d;ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();}).catch(()=>{G=defaultG();ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();});}
+            else{G=raw||defaultG();ensureDay(new Date());renderHeader();renderDash();initMobile();scrollToActiveBlock();checkWelcome();}
+          }
         });
       } else {
         _pinInput='';updatePinDots();
