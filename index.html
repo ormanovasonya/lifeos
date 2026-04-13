@@ -11,9 +11,6 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#111318">
 <title>LIFE OS</title>
-<link rel="manifest" id="pwa-manifest">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-touch-fullscreen" content="yes">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 20 20'%3E%3Cpath d='M10 1 L10 19 M3 6 L10 1 L17 6 M3 14 L10 19 L17 14' stroke='%23C9A66B' stroke-width='1' stroke-opacity='0.9'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%239F1239'/%3E%3C/svg%3E" type="image/svg+xml">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=JetBrains+Mono:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
@@ -2490,7 +2487,7 @@ function startOfflineMode(){
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
   document.getElementById('page-dash')?.classList.add('on');
   document.querySelectorAll('.nav-btn').forEach((e,i)=>{e.classList.toggle('on',i===0);});
-  initMobile(); // сначала initMobile
+  initMobile();
   renderHeader();renderDash();
   setTimeout(()=>{renderDash();scrollToActiveBlock();},200);
   checkWelcome();
@@ -2541,7 +2538,7 @@ async function initDataForUser(uid){
     document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
     document.getElementById('page-dash')?.classList.add('on');
     document.querySelectorAll('.nav-btn').forEach((e,i)=>{e.classList.toggle('on',i===0);});
-    initMobile(); // сначала initMobile — создаёт DOM для виджетов
+    initMobile();
     renderHeader();renderDash();
     setTimeout(()=>{renderDash();scrollToActiveBlock();},200);
     checkDailyBonus();
@@ -3000,6 +2997,7 @@ function renderDayProgressWidget(){
   let el=document.getElementById('day-progress-widget');
   if(!el){
     if(!mob||!_mobileInited)return;
+
     el=document.createElement('div');
     el.id='day-progress-widget';
     el.className='day-progress-widget';
@@ -4002,8 +4000,7 @@ let _tt;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2600);}
 
 window.addEventListener('load',()=>{
-  // initMobile вызывается из initDataForUser / startOfflineMode
-  // Здесь только для случая если они не вызвались
+  initMobile();
   // Fallback 1: Firebase scripts failed to load (5s)
   setTimeout(()=>{
     if(!_fbReady&&!_currentUser&&!_keyDerivationInProgress){
@@ -4127,24 +4124,21 @@ function initPullToRefresh(){
 
 // ── MOBILE LOGIC ──
 const isMobile = () => window.innerWidth <= 768;
-let _mobileInited = false;
+var _mobileInited = false;
 
 function initMobile() {
   if (!isMobile()) return;
   _mobileInited = true;
   document.getElementById('mobile-tab-bar').style.display = 'flex';
   document.getElementById('fab-mobile').style.display = 'flex';
-
-  // Создаём контейнер мобильных тренировок если его нет
   if (!document.getElementById('mob-tw-container')) {
-    const mobTw = document.createElement('div');
-    mobTw.className = 'mob-tw';
-    mobTw.id = 'mob-tw-container';
-    mobTw.innerHTML = '<div class="mob-tw-tabs" id="mob-tw-tabs"></div><div class="mob-tw-cards" id="mob-tw-cards"></div>';
-    const dashLeft = document.querySelector('.dash-left');
-    if (dashLeft) dashLeft.appendChild(mobTw);
+    var mt=document.createElement('div');
+    mt.className='mob-tw'; mt.id='mob-tw-container';
+    mt.innerHTML='<div class="mob-tw-tabs" id="mob-tw-tabs"></div><div class="mob-tw-cards" id="mob-tw-cards"></div>';
+    var dl=document.querySelector('.dash-left');
+    if(dl)dl.appendChild(mt);
   }
-
+  showSkeleton();
   initOfflineBanner();
   initSwipeToClose();
   initPullToRefresh();
@@ -4338,58 +4332,22 @@ function welcomeNext(){
 }
 
 
-// ── PWA ──
+// ── PWA INSTALL PROMPT ──
+// Показывает кнопку установки когда браузер готов
 (function(){
-  // Dynamic manifest — start_url must be absolute path, not blob
-  try{
-    const _path=window.location.pathname.replace(/\/[^\/]*$/, '/') || '/';
-    const manifest={
-      name:'LIFE OS',short_name:'LIFE OS',
-      description:'Личный операционник жизни',
-      start_url:window.location.href.split('?')[0],
-      scope:_path,
-      display:'standalone',
-      background_color:'#111318',
-      theme_color:'#111318',
-      orientation:'portrait-primary',
-      icons:[
-        {src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 20 20'%3E%3Crect width='20' height='20' fill='%23111318'/%3E%3Cpath d='M10 1 L10 19 M3 6 L10 1 L17 6 M3 14 L10 19 L17 14' stroke='%23C9A66B' stroke-width='1'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%239F1239'/%3E%3C/svg%3E",sizes:'192x192',type:'image/svg+xml',purpose:'any maskable'}
-      ]
-    };
-    const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-    const url=URL.createObjectURL(blob);
-    document.getElementById('pwa-manifest').href=url;
-  }catch(e){}
-
-  // Service Worker for offline cache
-  if('serviceWorker' in navigator){
-    const swCode=`
-const CACHE='lifeos-v1';
-const FILES=[location.pathname];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)));self.skipWaiting();});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(cached=>{const fresh=fetch(e.request).then(r=>{if(r.ok){const clone=r.clone();caches.open(CACHE).then(c=>c.put(e.request,clone));}return r;}).catch(()=>cached);return cached||fresh;}));});
-    `;
-    const swBlob=new Blob([swCode],{type:'application/javascript'});
-    const swUrl=URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl).catch(()=>{});
-  }
-
-  // Install prompt
-  let _deferredPrompt=null;
-  window.addEventListener('beforeinstallprompt',e=>{
-    e.preventDefault();_deferredPrompt=e;
-    // Show install hint after 30s if not installed
-    setTimeout(()=>{
-      if(_deferredPrompt&&!window.matchMedia('(display-mode: standalone)').matches){
-        showToast('📲 Добавь приложение на экран');
-        const btn=document.createElement('button');
-        btn.style.cssText='position:fixed;bottom:calc(68px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#FFB800;color:#111;border:none;border-radius:10px;padding:10px 20px;font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;cursor:pointer;z-index:9000;white-space:nowrap;box-shadow:0 4px 16px rgba(255,184,0,0.4)';
+  var _prompt=null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    _prompt=e;
+    setTimeout(function(){
+      if(!_prompt||window.matchMedia('(display-mode: standalone)').matches)return;
+      try{
+        var btn=document.createElement('button');
         btn.textContent='📲 Установить приложение';
-        btn.onclick=()=>{_deferredPrompt.prompt();_deferredPrompt.userChoice.then(()=>{_deferredPrompt=null;btn.remove();});};
+        btn.style.cssText='position:fixed;bottom:calc(68px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#FFB800;color:#111;border:none;border-radius:10px;padding:10px 20px;font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;cursor:pointer;z-index:9000;white-space:nowrap;box-shadow:0 4px 16px rgba(255,184,0,0.4)';
+        btn.onclick=function(){if(_prompt){_prompt.prompt();_prompt=null;}btn.remove();};
         document.body.appendChild(btn);
-        setTimeout(()=>btn.remove(),15000);
-      }
+        setTimeout(function(){if(btn.parentNode)btn.remove();},15000);
+      }catch(err){}
     },30000);
   });
 })();
