@@ -2490,8 +2490,9 @@ function startOfflineMode(){
   document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
   document.getElementById('page-dash')?.classList.add('on');
   document.querySelectorAll('.nav-btn').forEach((e,i)=>{e.classList.toggle('on',i===0);});
+  initMobile(); // сначала initMobile
   renderHeader();renderDash();
-  setTimeout(()=>{renderDash();initMobile();scrollToActiveBlock();},150);
+  setTimeout(()=>{renderDash();scrollToActiveBlock();},200);
   checkWelcome();
 }
 
@@ -2540,8 +2541,9 @@ async function initDataForUser(uid){
     document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
     document.getElementById('page-dash')?.classList.add('on');
     document.querySelectorAll('.nav-btn').forEach((e,i)=>{e.classList.toggle('on',i===0);});
+    initMobile(); // сначала initMobile — создаёт DOM для виджетов
     renderHeader();renderDash();
-    setTimeout(()=>{renderDash();initMobile();scrollToActiveBlock();},150);
+    setTimeout(()=>{renderDash();scrollToActiveBlock();},200);
     checkDailyBonus();
     checkWelcome();
   }).catch(()=>startOfflineMode());
@@ -2997,8 +2999,7 @@ function renderDayProgressWidget(){
   const mob=isMobile();
   let el=document.getElementById('day-progress-widget');
   if(!el){
-    if(!mob)return;
-
+    if(!mob||!_mobileInited)return;
     el=document.createElement('div');
     el.id='day-progress-widget';
     el.className='day-progress-widget';
@@ -3059,7 +3060,7 @@ function renderDayProgressWidget(){
 
 // ── STREAK WIDGET ──
 function renderStreakWidget(){
-  if(!isMobile())return;
+  if(!isMobile()||!_mobileInited)return;
   let el=document.getElementById('streak-widget');
   if(!el){
     el=document.createElement('div');
@@ -4001,7 +4002,8 @@ let _tt;
 function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2600);}
 
 window.addEventListener('load',()=>{
-  initMobile();
+  // initMobile вызывается из initDataForUser / startOfflineMode
+  // Здесь только для случая если они не вызвались
   // Fallback 1: Firebase scripts failed to load (5s)
   setTimeout(()=>{
     if(!_fbReady&&!_currentUser&&!_keyDerivationInProgress){
@@ -4125,12 +4127,24 @@ function initPullToRefresh(){
 
 // ── MOBILE LOGIC ──
 const isMobile = () => window.innerWidth <= 768;
+let _mobileInited = false;
 
 function initMobile() {
   if (!isMobile()) return;
+  _mobileInited = true;
   document.getElementById('mobile-tab-bar').style.display = 'flex';
   document.getElementById('fab-mobile').style.display = 'flex';
-  showSkeleton();
+
+  // Создаём контейнер мобильных тренировок если его нет
+  if (!document.getElementById('mob-tw-container')) {
+    const mobTw = document.createElement('div');
+    mobTw.className = 'mob-tw';
+    mobTw.id = 'mob-tw-container';
+    mobTw.innerHTML = '<div class="mob-tw-tabs" id="mob-tw-tabs"></div><div class="mob-tw-cards" id="mob-tw-cards"></div>';
+    const dashLeft = document.querySelector('.dash-left');
+    if (dashLeft) dashLeft.appendChild(mobTw);
+  }
+
   initOfflineBanner();
   initSwipeToClose();
   initPullToRefresh();
