@@ -2329,6 +2329,7 @@ transition:opacity .15s;
 </div>
 
 <div id="app-loading"><div class="key-loading-spinner"></div><div class="key-loading-text">Загрузка...</div></div>
+<script>document.addEventListener("DOMContentLoaded",function(){if(typeof isMobile==="function"&&isMobile()){document.getElementById("mobile-tab-bar").style.display="flex";document.getElementById("fab-mobile").style.display="flex";}});</script>
 <div id="key-loading"><div class="key-loading-spinner"></div><div class="key-loading-text">Генерация ключа...</div></div>
 <div class="toast" id="toast"></div>
 
@@ -2619,7 +2620,7 @@ async function signInWithGoogle(){
   const provider=new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({prompt:'select_account'});
   // Safari/iOS/Android блокируют popup — используем redirect
-  const useMobile=isMobile()||/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const useMobile=(window.innerWidth<=768)||/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   if(useMobile){
     try{
       if(errEl){errEl.style.color='var(--t2)';errEl.textContent='Переходим к Google...';}
@@ -2708,6 +2709,7 @@ async function pinKey(k){
       const savedHash=localStorage.getItem('lifeos_pin_hash');
       const inputHash=await hashPin(_pinInput); if(inputHash===savedHash){
         document.getElementById('pin-screen').style.display='none';
+        document.getElementById('auth-screen')?.remove();
         const _pinEmail=localStorage.getItem('lifeos_pin_email')||'local@lifeos';
         const _kl=document.getElementById('key-loading');if(_kl)_kl.classList.add('show');
         deriveCryptoKey(_pinEmail,_pinInput).then(key=>{
@@ -4153,9 +4155,13 @@ var _mobileInited = false;
 
 function initMobile() {
   if (!isMobile()) return;
+  // Always show tab bar, even if already inited
+  const tb=document.getElementById('mobile-tab-bar');
+  const fab=document.getElementById('fab-mobile');
+  if(tb)tb.style.display='flex';
+  if(fab)fab.style.display='flex';
+  if(_mobileInited) return;
   _mobileInited = true;
-  document.getElementById('mobile-tab-bar').style.display = 'flex';
-  document.getElementById('fab-mobile').style.display = 'flex';
   if (!document.getElementById('mob-tw-container')) {
     var mt=document.createElement('div');
     mt.className='mob-tw'; mt.id='mob-tw-container';
