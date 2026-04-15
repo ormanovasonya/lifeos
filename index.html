@@ -1147,11 +1147,16 @@ function initUD(uid_){
 function startOff(){_fbr=false;hideLd();G=migrate(lload())||defState();injDP();showApp();renderAll();}
 
 function signInGoogle(){
-  const err=document.getElementById('aerr');if(err)err.textContent='';
-  const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
-  const mob=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||/Safari/.test(navigator.userAgent)||window.innerWidth<=768;
-  if(mob){if(err){err.style.color='var(--t2)';err.textContent='Переходим к Google...';}firebase.auth().signInWithRedirect(p).catch(e=>{if(err){err.style.color='var(--rsoft)';err.textContent=e.message;}});}
-  else firebase.auth().signInWithPopup(p).catch(e=>{const m={'auth/popup-closed-by-user':'Окно закрыто.','auth/popup-blocked':'Всплывающее окно заблокировано.','auth/cancelled-popup-request':''};if(err)err.textContent=m[e.code]||e.message;if(e.code==='auth/popup-blocked')firebase.auth().signInWithRedirect(p);});
+  var err=document.getElementById('aerr');if(err)err.textContent='';
+  var p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  firebase.auth().signInWithPopup(p).catch(function(e){
+    var msgs={'auth/popup-closed-by-user':'Окно закрыто. Попробуй ещё раз.','auth/popup-blocked':'Браузер заблокировал окно. Разреши всплывающие окна.','auth/cancelled-popup-request':''};
+    if(err){err.style.color='var(--rsoft)';err.textContent=msgs[e.code]||e.message;}
+    if(e.code==='auth/popup-blocked'){
+      if(err){err.style.color='var(--t2)';err.textContent='Переходим к Google...';}
+      firebase.auth().signInWithRedirect(p);
+    }
+  });
 }
 function hideLd(){const e=document.getElementById('aloading');if(e){e.classList.add('hide');setTimeout(()=>e.remove(),400);}}
 function showAuth(){const e=document.getElementById('auth');if(e)e.style.display='flex';const a=document.getElementById('app');if(a)a.style.display='none';}
