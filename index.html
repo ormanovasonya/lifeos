@@ -1031,6 +1031,26 @@ function migrate(d){
   if(!d.fin.cry.hist)d.fin.cry.hist=[];
   if(!d.rewards||!d.rewards.length)d.rewards=defRew();
   ['projects','projectLogs','permBlocks','permTasks','deletedBlocks','deletedTasks'].forEach(k=>{if(!d[k])d[k]=[];});
+  // Fix legacy icon strings from v1 (e.g. 'reward_food_' → emoji)
+  var _imap={'reward_food_':'🍕','reward_drink_':'🥤','reward_game_':'🎮',
+    'reward_movie_':'🎬','reward_sleep_':'😴','reward_car_':'🚗',
+    'reward_shop_':'🛍','reward_friends_':'👥'};
+  if(d.rewards)d.rewards.forEach(function(r){
+    if(r.icon&&_imap[r.icon]){r.icon=_imap[r.icon];return;}
+    // Any icon that looks like a code string (no emoji) — fix by name
+    if(r.icon&&r.icon.length>3&&r.icon.indexOf('_')>=0){
+      var nm=(r.name||'').toLowerCase();
+      if(nm.indexOf('пицц')>=0||nm.indexOf('бургер')>=0)r.icon='🍕';
+      else if(nm.indexOf('перекус')>=0||nm.indexOf('напит')>=0)r.icon='🥤';
+      else if(nm.indexOf('игр')>=0)r.icon='🎮';
+      else if(nm.indexOf('кино')>=0||nm.indexOf('фильм')>=0)r.icon='🎬';
+      else if(nm.indexOf('спат')>=0||nm.indexOf('обед')>=0)r.icon='😴';
+      else if(nm.indexOf('авто')>=0||nm.indexOf('машин')>=0||nm.indexOf('прогулк')>=0)r.icon='🚗';
+      else if(nm.indexOf('купит')>=0||nm.indexOf('одежд')>=0)r.icon='🛍';
+      else if(nm.indexOf('друз')>=0)r.icon='👥';
+      else r.icon='🎁';
+    }
+  });
   return d;
 }
 
