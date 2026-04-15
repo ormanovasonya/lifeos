@@ -23,7 +23,7 @@ input,select,textarea{outline:none;font-family:'JetBrains Mono',monospace;}
   --r:12px;--rs:8px;--tbh:58px;--hdh:52px;
 }
 html,body{height:100%;min-height:-webkit-fill-available;background:var(--bg);color:var(--t1);font-family:'JetBrains Mono',monospace;font-size:14px;overflow:hidden;}
-body{background:var(--bg);}
+body{background:#0A0B0F;}
 #app{display:flex;flex-direction:column;height:100%;height:100dvh;min-height:-webkit-fill-available;background:var(--bg);}
 
 /* HEADER */
@@ -46,9 +46,27 @@ body{background:var(--bg);}
 .pscroll::-webkit-scrollbar{display:none;}
 
 /* TABBAR */
-#tbar{flex-shrink:0;height:calc(var(--tbh) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(10,11,15,.97);border-top:1px solid var(--bdr);display:flex;align-items:stretch;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:relative;z-index:10;}
-/* Extend tbar bg to fill any gap below safe area on iOS PWA */
-#tbar::after{content:'';position:fixed;bottom:0;left:0;right:0;height:env(safe-area-inset-bottom,0px);background:rgba(10,11,15,.97);z-index:9;}
+#tbar{
+  flex-shrink:0;
+  /* Use max() to ensure at least 20px bottom padding even if safe-area returns 0 */
+  height:calc(var(--tbh) + max(env(safe-area-inset-bottom,0px),20px));
+  padding-bottom:max(env(safe-area-inset-bottom,0px),20px);
+  background:#0A0B0F;
+  border-top:1px solid var(--bdr);
+  display:flex;align-items:stretch;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  position:relative;z-index:10;
+}
+/* Hard fill below tbar — covers iOS home indicator gap */
+#tbar::after{
+  content:'';
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:max(env(safe-area-inset-bottom,0px),20px);
+  background:#0A0B0F;
+  z-index:11;
+  pointer-events:none;
+}
 .tbtn{flex:1;display:flex;align-items:center;justify-content:center;position:relative;transition:opacity .15s;}
 .tbtn:active{opacity:.5;}
 .tbtn svg{transition:filter .2s,opacity .2s;opacity:.22;}
@@ -56,7 +74,7 @@ body{background:var(--bg);}
 .tbtn.active::before{content:'';position:absolute;top:0;left:16%;right:16%;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);box-shadow:0 0 8px rgba(255,184,0,.6);}
 
 /* FAB */
-#fab{position:fixed;right:18px;bottom:calc(var(--tbh) + env(safe-area-inset-bottom,0px) + 14px);width:52px;height:52px;background:var(--gold);color:#111;border-radius:14px;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(255,184,0,.4);z-index:20;transition:transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;}
+#fab{position:fixed;right:18px;bottom:calc(var(--tbh) + max(env(safe-area-inset-bottom,0px),20px) + 14px);width:52px;height:52px;background:var(--gold);color:#111;border-radius:14px;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(255,184,0,.4);z-index:20;transition:transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;}
 #fab:active{transform:scale(.88);box-shadow:0 2px 10px rgba(255,184,0,.2);}
 
 /* TODAY */
@@ -197,7 +215,7 @@ body{background:var(--bg);}
 .cmcls:active{background:rgba(255,255,255,.05);}
 
 /* TOAST */
-#toast{position:fixed;bottom:calc(var(--tbh) + env(safe-area-inset-bottom,0px) + 10px);left:50%;transform:translateX(-50%) translateY(6px);background:var(--bg3);border:1px solid var(--bdr2);border-radius:10px;padding:9px 18px;font-size:12px;letter-spacing:.5px;white-space:nowrap;opacity:0;pointer-events:none;z-index:300;transition:opacity .2s,transform .2s;max-width:calc(100vw - 32px);}
+#toast{position:fixed;bottom:calc(var(--tbh) + max(env(safe-area-inset-bottom,0px),20px) + 10px);left:50%;transform:translateX(-50%) translateY(6px);background:var(--bg3);border:1px solid var(--bdr2);border-radius:10px;padding:9px 18px;font-size:12px;letter-spacing:.5px;white-space:nowrap;opacity:0;pointer-events:none;z-index:300;transition:opacity .2s,transform .2s;max-width:calc(100vw - 32px);}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* LOADING */
