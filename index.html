@@ -241,7 +241,7 @@ html,body{height:100%;background:#0A0B0F;color:var(--t1);font-family:'JetBrains 
 .gbtn:active{transform:scale(.97);}
 
 /* OFFLINE */
-#offbanner{position:fixed;top:calc(var(--hdh) + env(safe-area-inset-top,0px));left:0;right:0;background:var(--bg3);border-bottom:1px solid var(--bdr);padding:8px 16px;font-size:11px;color:var(--t3);text-align:center;z-index:9;transform:translateY(-100%);transition:transform .2s;}
+#offbanner{position:fixed;top:calc(var(--hdh) + env(safe-area-inset-top,0px));left:0;right:0;background:var(--bg3);border-bottom:1px solid var(--bdr);padding:8px 16px;font-size:11px;color:var(--t3);text-align:center;z-index:9;transform:translateY(-100%);transition:transform .2s;cursor:pointer;}
 #offbanner.show{transform:translateY(0);}
 
 /* PLACEHOLDER */
@@ -987,7 +987,7 @@ html,body{height:100%;background:#0A0B0F;color:var(--t1);font-family:'JetBrains 
 </div>
 
 <div id="toast"></div>
-<div id="offbanner">— Офлайн · данные сохранены</div>
+<div id="offbanner">— Офлайн · данные сохранены · нажми чтобы скрыть</div>
 
 <script>var Q=String.fromCharCode(39);
 
@@ -2141,9 +2141,17 @@ function haptic(t){if(!navigator.vibrate)return;({light:[8],medium:[20],heavy:[4
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function esca(s){return String(s).replace(/'/g,"\\\'");}
 
-window.addEventListener('online', ()=>document.getElementById('offbanner').classList.remove('show'));
-window.addEventListener('offline',()=>document.getElementById('offbanner').classList.add('show'));
-if(!navigator.onLine)document.getElementById('offbanner').classList.add('show');
+const _ob = document.getElementById('offbanner');
+let _obTimer = null;
+function showOffBanner(){
+  _ob.classList.add('show');
+  clearTimeout(_obTimer);
+  _obTimer = setTimeout(()=>_ob.classList.remove('show'), 3000);
+}
+window.addEventListener('online',  ()=>_ob.classList.remove('show'));
+window.addEventListener('offline', ()=>showOffBanner());
+if(!navigator.onLine) showOffBanner();
+_ob.addEventListener('click', ()=>{ clearTimeout(_obTimer); _ob.classList.remove('show'); });
 
 // BOOT
 window.addEventListener('DOMContentLoaded',()=>{
