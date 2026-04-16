@@ -339,6 +339,22 @@ html,body{height:100%;background:#0A0B0F;color:var(--t1);font-family:'JetBrains 
 
 /* ═══════════ FINANCE ═══════════ */
 .finpage{padding:18px 16px 100px;}
+.fin-milestone{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;margin-bottom:8px;}
+.fin-milestone.reached{border-color:rgba(34,197,94,.3);background:linear-gradient(135deg,rgba(34,197,94,.05),transparent);}
+.fin-milestone.current{border-color:rgba(255,184,0,.4);background:linear-gradient(135deg,rgba(255,184,0,.07),transparent);}
+.fin-milestone.future{opacity:.4;}
+.fin-ms-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.fin-ms-icon{font-size:20px;flex-shrink:0;}
+.fin-ms-info{flex:1;}
+.fin-ms-name{font-size:13px;font-weight:500;color:var(--t1);margin-bottom:2px;}
+.fin-ms-sub{font-size:11px;color:var(--t3);}
+.fin-ms-pct{font-family:'Cinzel',serif;font-size:14px;font-weight:600;color:var(--gold);}
+.fin-ms-pct.reached{color:var(--grn);}
+.fin-ms-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.fin-ms-fill{height:100%;border-radius:2px;transition:width .6s;}
+.fin-milestone.reached .fin-ms-fill{background:var(--grn);}
+.fin-milestone.current .fin-ms-fill{background:linear-gradient(90deg,var(--gold),#FFD060);box-shadow:0 0 5px rgba(255,184,0,.3);}
+.fin-ms-need{font-size:10px;color:var(--t3);margin-top:5px;text-align:right;}
 .fintit{font-family:'Cinzel',serif;font-size:18px;font-weight:600;letter-spacing:.5px;margin-bottom:18px;}
 
 .fin-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
@@ -405,6 +421,8 @@ html,body{height:100%;background:#0A0B0F;color:var(--t1);font-family:'JetBrains 
 .projlist{display:flex;flex-direction:column;gap:8px;}
 .projcard{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;animation:cin .3s cubic-bezier(.34,1.2,.64,1) both;}
 .projcard.wait{opacity:.55;}
+.projcard.queue{opacity:.85;}
+.projcard.bg{opacity:.4;}
 .pcard-hdr{display:flex;align-items:center;gap:10px;padding:13px 14px 10px;cursor:pointer;}
 .pcard-status{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .pcard-status.active{background:var(--grn);box-shadow:0 0 6px rgba(34,197,94,.4);}
@@ -611,6 +629,13 @@ html,body{height:100%;background:#0A0B0F;color:var(--t1);font-family:'JetBrains 
               <div class="finbar"><div class="finbar-f" id="fin-cry-bar" style="width:0%"></div></div>
               <div class="fincard-pct" id="fin-cry-pct">0% от цели</div>
             </div>
+          </div>
+
+          <!-- Milestones -->
+          <div class="fin-section">
+            <div class="fin-section-title">Ближайшие цели</div>
+            <div id="fin-ms-apt"></div>
+            <div id="fin-ms-cry" style="margin-top:8px"></div>
           </div>
 
           <!-- Apt operations -->
@@ -909,9 +934,10 @@ html,body{height:100%;background:#0A0B0F;color:var(--t1);font-family:'JetBrains 
     <div class="frow">
       <div><label class="flbl">Статус</label>
         <select class="finp" id="proj-st" style="background:var(--bg3);color:var(--t1);cursor:pointer;-webkit-appearance:none">
-          <option value="active">Active</option>
-          <option value="wait">Wait</option>
-          <option value="done">Done</option>
+          <option value="active">Активный</option>
+          <option value="queue">На очереди</option>
+          <option value="bg">Фон</option>
+          <option value="done">Завершён</option>
         </select>
       </div>
       <div><label class="flbl">Дата выхода</label><input class="finp" id="proj-dt" placeholder="Q3 2025..."></div>
@@ -1757,6 +1783,32 @@ function fmtMoney(n){
   return String(Math.round(n));
 }
 
+function renderMilestones(cur,steps,sym,elId){
+  var el=document.getElementById(elId);if(!el)return;
+  var html='';
+  var shownCurrent=false;
+  for(var i=0;i<steps.length;i++){
+    var ms=steps[i];
+    var reached=(cur>=ms.tgt);
+    var isCurrent=(!reached&&!shownCurrent);
+    if(isCurrent)shownCurrent=true;
+    if(!reached&&!isCurrent)continue;
+    var pct=reached?100:Math.min(100,cur/ms.tgt*100);
+    var cls='fin-milestone '+(reached?'reached':isCurrent?'current':'future');
+    html+='<div class="'+cls+'">';
+    html+='<div class="fin-ms-top">';
+    html+='<div class="fin-ms-icon">'+ms.icon+'</div>';
+    html+='<div class="fin-ms-info"><div class="fin-ms-name">'+(reached?'✓ ':'')+ms.name+'</div>';
+    html+='<div class="fin-ms-sub">'+sym+fmtMoney(ms.tgt)+'</div></div>';
+    html+='<div class="fin-ms-pct'+(reached?' reached':'')+'">'+pct.toFixed(0)+'%</div>';
+    html+='</div>';
+    html+='<div class="fin-ms-bar"><div class="fin-ms-fill" style="width:'+pct.toFixed(1)+'%"></div></div>';
+    if(isCurrent)html+='<div class="fin-ms-need">Осталось: '+sym+fmtMoney(ms.tgt-cur)+'</div>';
+    html+='</div>';
+  }
+  el.innerHTML=html;
+}
+
 function renderFin(){
   if(!G)return;
   const{apt,cry}=G.fin;
@@ -1849,50 +1901,89 @@ function renderProjects(){
     document.getElementById('projlist').innerHTML='<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px">Проектов нет</div>';
     return;
   }
-  var phtml='';
-  for(var pi=0;pi<vis.length;pi++){
-    var p=vis[pi];
-    var pnl=(p.out||0)-(p.inp||0);
-    var pnlCls=pnl>0?'pos':pnl<0?'neg':'zero';
-    var pnlTxt=pnl===0?'—':(pnl>0?'+':'')+pnl.toFixed(0)+'$';
-    var logs=(G.projectLogs[p.id]||[]).slice(-3).reverse();
-    phtml+='<div class="projcard '+p.status+'" id="pc-'+p.id+'">';
-    phtml+='<div class="pcard-hdr" onclick="togProj('+Q+p.id+Q+')">';
-    phtml+='<div class="pcard-status '+p.status+'"></div>';
-    phtml+='<div class="pcard-name">'+esc(p.name)+'</div>';
-    phtml+='<div class="pcard-pnl '+pnlCls+'">'+pnlTxt+'</div>';
-    phtml+='<div class="pcard-menu" onclick="event.stopPropagation();editProj('+Q+p.id+Q+')">';
-    phtml+='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-    phtml+='</div></div>';
-    phtml+='<div class="pcard-body">';
-    if(p.next){
-      phtml+='<div class="pcard-next-lbl">Следующий шаг</div>';
-      phtml+='<div class="pcard-next">'+esc(p.next)+'</div>';
-    }
-    phtml+='<div class="pcard-meta">';
-    phtml+='<div class="pmeta-item"><div class="pmeta-val">'+(p.inp||0)+'$</div><div class="pmeta-lbl">Вложено</div></div>';
-    phtml+='<div class="pmeta-item"><div class="pmeta-val">'+(p.out||0)+'$</div><div class="pmeta-lbl">Получено</div></div>';
-    phtml+='<div class="pmeta-item"><div class="pmeta-val">'+(p.date?esc(p.date):'—')+'</div><div class="pmeta-lbl">Когда</div></div>';
-    phtml+='</div>';
-    if(logs.length){
-      phtml+='<div class="pcard-log"><div class="plog-title">Последние записи</div>';
-      for(var li=0;li<logs.length;li++){
-        phtml+='<div class="plog-row"><span class="plog-date">'+fmtDate(logs[li].ts)+'</span>'+esc(logs[li].text)+'</div>';
-      }
+  if(_pfilt==='all'){
+    var sections=[
+      {key:'active',label:'Активные',dot:'active'},
+      {key:'queue', label:'На очереди',dot:'queue'},
+      {key:'bg',    label:'Фон',dot:'bg'},
+      {key:'done',  label:'Завершены',dot:'done'},
+    ];
+    var phtml='';
+    sections.forEach(function(sec){
+      var items=proj.filter(function(p){return p.status===sec.key;});
+      if(!items.length)return;
+      phtml+='<div class="proj-status-section">';
+      phtml+='<div class="proj-status-hdr"><div class="proj-status-dot '+sec.dot+'"></div>'+sec.label+' ('+items.length+')</div>';
+      for(var i=0;i<items.length;i++){phtml+=buildProjCard(items[i]);}
       phtml+='</div>';
-    }
-    phtml+='<div class="pcard-actions">';
-    phtml+='<button class="pact-btn log" onclick="openPLog('+Q+p.id+Q+')">+ Запись</button>';
-    if(p.status!=='done'){
-      phtml+='<button class="pact-btn done" onclick="markProjDone('+Q+p.id+Q+')">Завершить</button>';
-    }
-    phtml+='<button class="pact-btn del" onclick="delProj('+Q+p.id+Q+')">Удалить</button>';
-    phtml+='</div></div></div>';
+    });
+    document.getElementById('projlist').innerHTML=phtml||'<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px">Проектов нет</div>';
+  } else {
+    var phtml='';
+    for(var pi=0;pi<vis.length;pi++){phtml+=buildProjCard(vis[pi]);}
+    document.getElementById('projlist').innerHTML=phtml||'<div style="text-align:center;padding:40px;color:var(--t3);font-size:13px">Проектов нет</div>';
   }
-  document.getElementById('projlist').innerHTML=phtml;
+}
+
+function buildProjCard(p){
+  var pnl=(p.out||0)-(p.inp||0);
+  var pnlCls=pnl>0?'pos':pnl<0?'neg':'zero';
+  var pnlTxt=pnl===0?'—':(pnl>0?'+':'')+pnl.toFixed(0)+'$';
+  var logs=(G.projectLogs[p.id]||[]).slice(-3).reverse();
+  var moveHtml='<div class="pcard-move-btns">';
+  if(p.status==='queue'||p.status==='bg')
+    moveHtml+='<button class="pmove-btn" onclick="event.stopPropagation();moveProj(\''+p.id+'\',\'active\')">▲ Активный</button>';
+  if(p.status==='active')
+    moveHtml+='<button class="pmove-btn" onclick="event.stopPropagation();moveProj(\''+p.id+'\',\'queue\')">На очередь</button>';
+  if(p.status==='active'||p.status==='queue')
+    moveHtml+='<button class="pmove-btn" onclick="event.stopPropagation();moveProj(\''+p.id+'\',\'bg\')">В фон</button>';
+  moveHtml+='</div>';
+  var html='';
+  html+='<div class="projcard '+p.status+'" id="pc-'+p.id+'">';
+  html+='<div class="pcard-hdr" onclick="togProj(\''+p.id+'\')">';
+  html+='<div class="pcard-status '+p.status+'"></div>';
+  html+='<div class="pcard-name">'+esc(p.name)+'</div>';
+  html+='<div class="pcard-pnl '+pnlCls+'">'+pnlTxt+'</div>';
+  html+='<div class="pcard-menu" onclick="event.stopPropagation();editProj(\''+p.id+'\')">';
+  html+='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  html+='</div></div>';
+  html+='<div class="pcard-body">';
+  if(p.next){
+    html+='<div class="pcard-next-lbl">Следующий шаг</div>';
+    html+='<div class="pcard-next">'+esc(p.next)+'</div>';
+  }
+  html+='<div class="pcard-meta">';
+  html+='<div class="pmeta-item"><div class="pmeta-val">'+(p.inp||0)+'$</div><div class="pmeta-lbl">Вложено</div></div>';
+  html+='<div class="pmeta-item"><div class="pmeta-val">'+(p.out||0)+'$</div><div class="pmeta-lbl">Получено</div></div>';
+  html+='<div class="pmeta-item"><div class="pmeta-val">'+(p.date?esc(p.date):'—')+'</div><div class="pmeta-lbl">Когда</div></div>';
+  html+='</div>';
+  html+=moveHtml;
+  if(logs.length){
+    html+='<div class="pcard-log"><div class="plog-title">Последние записи</div>';
+    for(var li=0;li<logs.length;li++){
+      html+='<div class="plog-row"><span class="plog-date">'+fmtDate(logs[li].ts)+'</span>'+esc(logs[li].text)+'</div>';
+    }
+    html+='</div>';
+  }
+  html+='<div class="pcard-actions">';
+  html+='<button class="pact-btn log" onclick="openPLog(\''+p.id+'\')">+ Запись</button>';
+  if(p.status!=='done'){
+    html+='<button class="pact-btn done" onclick="markProjDone(\''+p.id+'\')">Завершить</button>';
+  }
+  html+='<button class="pact-btn del" onclick="delProj(\''+p.id+'\')">Удалить</button>';
+  html+='</div></div></div>';
+  return html;
 }
 
 function setPfilt(k){_pfilt=k;renderProjects();}
+function moveProj(id,newStatus){
+  var p=G.projects.find(function(x){return x.id===id;});
+  if(!p)return;
+  p.status=newStatus;
+  refreshProjBlock();save();renderProjects();renderToday();
+  var labels={active:'Активные',queue:'На очереди',bg:'Фон'};
+  toast('→ '+esc(p.name)+' · '+(labels[newStatus]||newStatus));
+}
 function togProj(id){document.getElementById('pc-'+id)?.classList.toggle('expanded');}
 
 function openAddProj(){
